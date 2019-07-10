@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include <functional>
+namespace Straw {
 class Window{
 public:
   Window(const std::string& name,float width,float height);
@@ -14,8 +15,10 @@ public:
   GLFWwindow* m_window;
   double mousexpos, mouseypos;
   static double S_WIDTH, S_HEIGHT;
-  
+
 private:
   std::string m_name;
   float m_width,m_height;
 };
+
+} // namespace Straw

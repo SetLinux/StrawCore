@@ -19,7 +19,7 @@ class CLBack : public b2ContactListener{
 public:
   void BeginContact(b2Contact* contact){
     callback(contact);
-  };
+  }
   std::function<void(b2Contact*)> callback;
 };
 
@@ -35,7 +35,7 @@ public:
 
   static void PhysicsSystemUpdate(entt::registry &regisry, float alpha);
   static void PhysicsSystemFixedUpdate(entt::registry &regisry);
-  static b2Body *CreateBody(XVector pos, XVector scale, entt::entity id = 0);
+  static b2Body *CreateBody(XVector pos, XVector scale,float rotation, entt::entity id = 0);
   static b2Body *CreateBody(entt::registry& reg,entt::entity id);
   static void
   RayCast(XVector pointa, XVector point,std::function<void(const b2Vec2 &point, const b2Vec2 &normal,unsigned int EntityID)> callback);

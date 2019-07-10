@@ -16,7 +16,7 @@ public:
   
   static void RenderSystem(entt::registry &registery);
   static void InitSystem(entt::registry& registery) {
-	  reg = &registery;
+    reg = &registery;
     renderer.Init();
     vertices = new Vertex[4];
     vertices[0].position = XVector(-0.5f, 0.5f);

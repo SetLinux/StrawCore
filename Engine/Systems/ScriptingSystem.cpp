@@ -3,7 +3,7 @@
 #include "../Rendering/Texture2D.hpp"
 #include "../Components/Components.hpp"
 sol::state ScriptingSystem::luastate;
-void ScriptingSystem::Init(entt::registry& registry, Window& win) {
+void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 	luastate.open_libraries(sol::lib::base, sol::lib::os, sol::lib::math);
 	//XVector Bindings
 	luastate.new_usertype<XVector>("XVector", sol::constructors<XVector(float, float), XVector(float, float, float),XVector(float,float,float,float)>(),
@@ -30,7 +30,12 @@ void ScriptingSystem::Init(entt::registry& registry, Window& win) {
 		return tex->id;
 	};
 	luastate["PhysicsSystem"] = sol::new_table();
-	Straw::CLBack* collisionBack = new Straw::CLBack();
+    luastate["PhysicsSystem"]["rayCast"] = [](XVector pointa,XVector pointb , sol::function func){
+        Straw::PhysicsSystem::RayCast(pointa,pointb,[func](const b2Vec2& a,const b2Vec2 normal,unsigned int entity){
+            func(XVector::fromVec(normal),XVector::fromVec(a) * Straw::PhysicsSystem::PPM,entity);
+        });
+    };
+    Straw::CLBack* collisionBack = new Straw::CLBack();
 	collisionBack->callback = [](b2Contact * contact) {
 		auto func = luastate["PhysicsSystem"]["OnContact"];
 		if (func.valid()) {
@@ -65,6 +70,7 @@ void ScriptingSystem::Init(entt::registry& registry, Window& win) {
 		"texID", &Straw::Components::Sprite::texID);
 	luastate.new_usertype <Straw::Components::Physics>("Body", sol::constructors<>(),
 		"new", sol::no_constructor,
+        "position" , sol::readonly_property([](Straw::Components::Physics& self){return XVector::fromVec(self.body->GetPosition()) * Straw::PhysicsSystem::PPM;}),
 		"velocity", sol::property([](Straw::Components::Physics & self) {return XVector::fromVec(self.body->GetLinearVelocity()); }, [](Straw::Components::Physics & self, XVector & other) {
 			self.body->SetLinearVelocity(XVector::ToVec<b2Vec2>(other));
 			}));

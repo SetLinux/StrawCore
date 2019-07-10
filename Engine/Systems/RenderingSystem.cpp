@@ -6,6 +6,7 @@ namespace Straw{
 	Vertex* RenderingSystem::vertices;
 	Rendering::Renderer RenderingSystem::renderer;
 	std::map<unsigned int, std::function<void()>> RenderingSystem::ShaderUniforms;
+    entt::registry* RenderingSystem::reg;
 #pragma endregion
 
 void RenderingSystem::RenderSystem(entt::registry &registery) {
@@ -31,7 +32,7 @@ void RenderingSystem::RenderSystem(entt::registry &registery) {
            if (sprite.vertices[i].TexCoord == XVector(0, 0))
                sprite.vertices[i].TexCoord = vertices[i].TexCoord;
        }
-  },3);
+  },1);
   for (auto& ts : view) {
 
       Components::Sprite& sprite = view.get<Components::Sprite>(ts);

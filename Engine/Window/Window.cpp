@@ -1,4 +1,6 @@
 #include "Window.hpp"
+namespace Straw {
+
 double Window::S_HEIGHT, Window::S_WIDTH;
 Window::Window(const std::string &name, float width, float height)
     : m_name(name), m_width(width), m_height(height), m_window(nullptr){
@@ -29,7 +31,7 @@ void Window::Init() {
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   
   glfwSetInputMode(m_window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
-  glfwSwapInterval(0);
+  glfwSwapInterval(1);
 }
 Window::~Window() {
   glfwDestroyWindow(m_window);
@@ -56,11 +58,12 @@ void Window::Loop(std::function<void(float,float)> Update,
 		
 	}
 	const double alpha = accumulator / dt;
-	glClearColor(1, 0, 0, 1);
+    glClearColor(1, 1, 0, 1);
 	glEnable(GL_STENCIL_TEST | GL_DEPTH_TEST);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     Update(alpha,dt);
-
+    glfwSwapBuffers(m_window);
   }
  
 }
+} // namespace Straw

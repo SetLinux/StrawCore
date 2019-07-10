@@ -54,7 +54,7 @@ void Renderer::Submit(Vertex vertices[4], unsigned int texid, int verticesnum) {
 }
 void Renderer::End() {
 	if (!Binded) {
-		std::cout << "OAH FUCK YOU FUCKED UP" << std::endl;
+        std::cout << "[*] Renderer : You don't bind before calling End " << std::endl;
 	}
   int offset = 0;
   glBindVertexArray(m_VAO);
@@ -64,8 +64,7 @@ void Renderer::End() {
   for (auto &rq : m_queuedvertices) {
     glBindTexture(GL_TEXTURE_2D, rq.first);
 	glBufferSubData(GL_ARRAY_BUFFER, offset, rq.second.size() * sizeof(Vertex),rq.second.data());
-	GLenum err = glGetError();
-	glDrawElements(GL_TRIANGLES, rq.second.size() / 4 * 6, GL_UNSIGNED_INT,(void *)offset);
+    glDrawElements(GL_TRIANGLES, rq.second.size() / 4 * 6, GL_UNSIGNED_INT,(void *)offset);
 	
     rq.second.clear();
     offset += rq.second.size() * sizeof(Vertex);

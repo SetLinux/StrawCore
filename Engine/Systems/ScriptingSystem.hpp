@@ -6,7 +6,7 @@
 class GLFWwindow;
 class ScriptingSystem {
 public:
-	static void Init(entt::registry& registry,Window& win);
+    static void Init(entt::registry& registry,Straw::Window& win);
 	static sol::state luastate;
 	static void ScriptingSystemUpdate( entt::registry& registry,float dt);
 	static void ScriptingSystemFixedUpdate( entt::registry& registry,float dt);

@@ -8,7 +8,7 @@ void PhysicsSystem::PhysicsSystemFixedUpdate(entt::registry &registry){
   for(auto& ent : view){
     Components::Physics &physics = registry.get<Components::Physics>(ent);
     physics.lastpos = XVector::fromVec(physics.body->GetPosition()) * PPM;
-  };
+  }
   m_world->Step(1.f/60.f, 8,4);
 }
 
@@ -21,14 +21,14 @@ void PhysicsSystem::PhysicsSystemUpdate(entt::registry & registry,float alpha) {
   }
 }
 
-b2Body* PhysicsSystem::CreateBody(XVector pos,XVector scale,entt::entity id){
+b2Body* PhysicsSystem::CreateBody(XVector pos,XVector scale,float rotation,entt::entity id){
   b2BodyDef bodyDef;
   bodyDef.type = b2_dynamicBody;
   bodyDef.position.Set(
 		       pos.x / PhysicsSystem::PPM,
 		       pos.y / PhysicsSystem::PPM);
-  
-  bodyDef.fixedRotation = true;
+  bodyDef.angle = rotation;
+  //bodyDef.fixedRotation = true;
   //  bodyDef.bullet = true;
   
   bodyDef.userData = (void*)(long(id));
@@ -41,22 +41,20 @@ b2Body* PhysicsSystem::CreateBody(XVector pos,XVector scale,entt::entity id){
   fixtureDef.shape = &shape;
   fixtureDef.density = 0.5f;
   fixtureDef.friction = 1.0f;
-  fixtureDef.restitution = 0.3f;
+  fixtureDef.restitution = 0.0f;
 
   m_body->CreateFixture(&fixtureDef);
   return m_body;
 }
 b2Body* PhysicsSystem::CreateBody(entt::registry& reg, entt::entity id) {
 	Components::Transform& tran = reg.get<Components::Transform>(id);
-	return CreateBody(tran.position, tran.scale, id);
+    return CreateBody(tran.position, tran.scale, tran.rotation, id);
 
 }
 
 void PhysicsSystem::RayCast(
     XVector pointa, XVector pointb,
-    std::function<void(const b2Vec2 &point, const b2Vec2 &normal,
-                       unsigned int EntityID)>
-        callback) {
+    std::function<void(const b2Vec2 &point, const b2Vec2 &normal,  unsigned int EntityID)> callback) {
   rcb.callback = callback;
   m_world->RayCast(&rcb, XVector::ToVec<b2Vec2>(pointa / PPM),
                    XVector::ToVec<b2Vec2>(pointb / PPM));
