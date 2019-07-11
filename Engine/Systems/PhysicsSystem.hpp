@@ -10,7 +10,11 @@ public:
   float32 ReportFixture(b2Fixture *fixture, const b2Vec2 &point,
                         const b2Vec2 &normal, float32 fraction) {
     // Just a bunch of shitty castings because of the [[~Percisions Errrors~]] Shit 
-    callback(point,normal,(unsigned int)((long)(fixture->GetBody()->GetUserData())));
+      if((unsigned int)((long)(fixture->GetBody()->GetUserData())) == 1){
+          return -1;
+      }
+      callback(point,normal,(unsigned int)((long)(fixture->GetBody()->GetUserData())));
+
     return fraction;
   }
   std::function<void(const b2Vec2& point, const b2Vec2 &normal,unsigned int EntityID)> callback;
@@ -30,7 +34,7 @@ public:
   
   static void Init() {
     m_world = new b2World(b2Vec2(0, -40.f));
-    m_world->SetContinuousPhysics(false);
+    m_world->SetContinuousPhysics(true);
   }
 
   static void PhysicsSystemUpdate(entt::registry &regisry, float alpha);

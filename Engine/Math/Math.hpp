@@ -41,6 +41,9 @@ struct XVector {
     this->z = z;
     this->w = w;
   }
+  float Magnitude(){
+      return std::sqrt(std::pow(this->x,2) + std::pow(this->y,2));;
+  }
   XVector Normalize() {
     float length = std::sqrt(std::pow(this->x,2) + std::pow(this->y,2));
     if(length == 0) return *this;

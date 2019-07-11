@@ -11,7 +11,8 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 		"y", &XVector::y,
 		"z", &XVector::z,
 		"w", &XVector::w,
-		"Normal",&XVector::Normalize
+        "Normal",&XVector::Normalize,
+        "Mag",&XVector::Magnitude
 		, sol::meta_function::addition, sol::overload([](const XVector & self, const XVector & other) {return self + other; }, [](const XVector & self, float other) {return self + other; })
 		, sol::meta_function::subtraction, sol::overload([](const XVector & self, const XVector & other) {return self - other; }, [](const XVector & self, float other) {return self - other; })
 		, sol::meta_function::division, sol::overload([](const XVector & self, const XVector & other) {return self / other; }, [](const XVector & self, float other) {return self / other; })
@@ -70,7 +71,7 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 		"texID", &Straw::Components::Sprite::texID);
 	luastate.new_usertype <Straw::Components::Physics>("Body", sol::constructors<>(),
 		"new", sol::no_constructor,
-        "position" , sol::readonly_property([](Straw::Components::Physics& self){return XVector::fromVec(self.body->GetPosition()) * Straw::PhysicsSystem::PPM;}),
+    "position" , sol::property([](Straw::Components::Physics& self){return XVector::fromVec(self.body->GetPosition()) * Straw::PhysicsSystem::PPM;},[](Straw::Components::Physics& physics,XVector& other){physics.body->SetTransform(XVector::ToVec<b2Vec2>(other / Straw::PhysicsSystem::PPM),0);}),
 		"velocity", sol::property([](Straw::Components::Physics & self) {return XVector::fromVec(self.body->GetLinearVelocity()); }, [](Straw::Components::Physics & self, XVector & other) {
 			self.body->SetLinearVelocity(XVector::ToVec<b2Vec2>(other));
 			}));
@@ -110,7 +111,7 @@ void ScriptingSystem::ExecuteScript(const std::string& fileName) {
 		sol::error err = loadFileResult;
 		std::cerr << "failed to load file-based script::" << fileName << "::" << err.what() << std::endl;
 	}
-	sol::protected_function_result res = loadFileResult();
+    sol::protected_function_result res = loadFileResult();
 	if (!res.valid()) {
 		sol::error err = res;
 		std::cerr << "failed to Execture file-based script::" << fileName << "::" << err.what() << std::endl;

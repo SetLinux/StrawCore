@@ -32,6 +32,7 @@ struct Sprite {
 		tbl.for_each([&](std::pair<sol::object, sol::object> pair) {
 			if (pair.first.as<std::string>() == "texID") {
 				this->texID = pair.second.as<unsigned int>();
+                std::cout << "CreatedSprite " << std::endl;
 			}
 			});
 

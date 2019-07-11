@@ -17,6 +17,7 @@ shdr.Use();
 Straw::Rendering::Texture2D tex("Assets/sheet.png");
 tex.Init();
 ScriptingSystem::Init(reg,win);
+std::cout << "TEXTURE: " << tex.id << std::endl;
 ScriptingSystem::ExecuteScript("Assets/KeyBindings.lua");
 auto ScriptGod = reg.create();
 reg.assign<Straw::Components::Script> (ScriptGod,ScriptingSystem::luastate).LoadScript("Assets/God.lua");
