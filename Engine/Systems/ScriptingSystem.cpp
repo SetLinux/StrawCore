@@ -16,7 +16,8 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 		, sol::meta_function::addition, sol::overload([](const XVector & self, const XVector & other) {return self + other; }, [](const XVector & self, float other) {return self + other; })
 		, sol::meta_function::subtraction, sol::overload([](const XVector & self, const XVector & other) {return self - other; }, [](const XVector & self, float other) {return self - other; })
 		, sol::meta_function::division, sol::overload([](const XVector & self, const XVector & other) {return self / other; }, [](const XVector & self, float other) {return self / other; })
-		, sol::meta_function::multiplication, sol::overload([](const XVector & self, const XVector & other) {return self * other; }, [](const XVector & self, float other) {return self * other; }));
+        , sol::meta_function::multiplication, sol::overload([](const XVector & self, const XVector & other) {return self * other; }, [](const XVector & self, float other) {return self * other; })
+        ,sol::meta_function::equal_to , [](XVector& a,XVector& b){return a == b;});
 	luastate["Dot"] = [](XVector a, XVector b) {return XVector::Dot(a, b); };
 	luastate["Distance"] = [](XVector a, XVector b) {return XVector::Distance(a, b); };
 	luastate["Radians"] = [](float input) {return Radians(input); };
@@ -32,9 +33,21 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 	};
 	luastate["PhysicsSystem"] = sol::new_table();
     luastate["PhysicsSystem"]["rayCast"] = [](XVector pointa,XVector pointb , sol::function func){
-        Straw::PhysicsSystem::RayCast(pointa,pointb,[func](const b2Vec2& a,const b2Vec2 normal,unsigned int entity){
+        Straw::PhysicsSystem::RayCast(pointa,pointb,[func](const b2Vec2& a,const b2Vec2 normal,unsigned int entity,float fraction){
             func(XVector::fromVec(normal),XVector::fromVec(a) * Straw::PhysicsSystem::PPM,entity);
+        return fraction;
         });
+    };
+    luastate["PhysicsSystem"]["filteredRayCast"] = [](XVector pointa,XVector pointb, unsigned int ent, sol::function func){
+        Straw::PhysicsSystem::RayCast(pointa,pointb,[func,ent](const b2Vec2& a,const b2Vec2 normal,unsigned int entity,float fraction){
+            if(ent != entity){
+                std::cout << "Filtered : " << entity<< std::endl;
+                return -1.f;
+            }
+            func(XVector::fromVec(normal),XVector::fromVec(a) * Straw::PhysicsSystem::PPM,entity);
+        return fraction;
+        });
+
     };
     Straw::CLBack* collisionBack = new Straw::CLBack();
 	collisionBack->callback = [](b2Contact * contact) {
@@ -71,7 +84,8 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 		"texID", &Straw::Components::Sprite::texID);
 	luastate.new_usertype <Straw::Components::Physics>("Body", sol::constructors<>(),
 		"new", sol::no_constructor,
-    "position" , sol::property([](Straw::Components::Physics& self){return XVector::fromVec(self.body->GetPosition()) * Straw::PhysicsSystem::PPM;},[](Straw::Components::Physics& physics,XVector& other){physics.body->SetTransform(XVector::ToVec<b2Vec2>(other / Straw::PhysicsSystem::PPM),0);}),
+        "slope",&Straw::Components::Physics::Slope,
+        "position" , sol::property([](Straw::Components::Physics& self){return XVector::fromVec(self.body->GetPosition()) * Straw::PhysicsSystem::PPM;},[](Straw::Components::Physics& physics,XVector& other){physics.body->SetTransform(XVector::ToVec<b2Vec2>(other / Straw::PhysicsSystem::PPM),0);}),
 		"velocity", sol::property([](Straw::Components::Physics & self) {return XVector::fromVec(self.body->GetLinearVelocity()); }, [](Straw::Components::Physics & self, XVector & other) {
 			self.body->SetLinearVelocity(XVector::ToVec<b2Vec2>(other));
 			}));

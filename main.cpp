@@ -33,20 +33,19 @@ reg.assign<Straw::Components::Transform>(floor,XVector(500,000),XVector(800,100)
 reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
 reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).body->SetType(b2BodyType::b2_staticBody);
 
-
+std::cout << floor << std::endl;
  floor = reg.create();
 reg.assign<Straw::Components::Transform>(floor,XVector(900,000),XVector(800,100),Radians(45));
 reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
 reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).body->SetType(b2BodyType::b2_staticBody);
-
+reg.get<Straw::Components::Physics>(floor).Slope = true;
 floor = reg.create();
 reg.assign<Straw::Components::Transform>(floor,XVector(100,000),XVector(800,100),Radians(-45));
 reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
 reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).body->SetType(b2BodyType::b2_staticBody);
-
-
+reg.get<Straw::Components::Physics>(floor).Slope = true;
 floor = reg.create();
-reg.assign<Straw::Components::Transform>(floor,XVector(970,300),XVector(100,100),Radians(-45));
+reg.assign<Straw::Components::Transform>(floor,XVector(758,447),XVector(300,60),Radians(0));
 reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
 reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).body->SetType(b2BodyType::b2_staticBody);
 
@@ -55,6 +54,7 @@ floor = reg.create();
 reg.assign<Straw::Components::Transform>(floor,XVector(500,300),XVector(400,100),Radians(45));
 reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
 reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).body->SetType(b2BodyType::b2_staticBody);
+reg.get<Straw::Components::Physics>(floor).Slope = true;
 
 win.Loop([&](float alpha,float dt){
     ScriptingSystem::ScriptingSystemUpdate(reg,dt);

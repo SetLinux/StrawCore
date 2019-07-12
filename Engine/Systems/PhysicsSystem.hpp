@@ -13,11 +13,14 @@ public:
       if((unsigned int)((long)(fixture->GetBody()->GetUserData())) == 1){
           return -1;
       }
-      callback(point,normal,(unsigned int)((long)(fixture->GetBody()->GetUserData())));
+      return callback(point,normal,(unsigned int)((long)(fixture->GetBody()->GetUserData())),fraction);
 
+      if((unsigned int)((long)(fixture->GetBody()->GetUserData())) == 2){
+          return fraction;
+      }
     return fraction;
   }
-  std::function<void(const b2Vec2& point, const b2Vec2 &normal,unsigned int EntityID)> callback;
+  std::function<float(const b2Vec2& point, const b2Vec2 &normal,unsigned int EntityID,float fraction)> callback;
 };
 class CLBack : public b2ContactListener{
 public:
@@ -42,7 +45,7 @@ public:
   static b2Body *CreateBody(XVector pos, XVector scale,float rotation, entt::entity id = 0);
   static b2Body *CreateBody(entt::registry& reg,entt::entity id);
   static void
-  RayCast(XVector pointa, XVector point,std::function<void(const b2Vec2 &point, const b2Vec2 &normal,unsigned int EntityID)> callback);
+  RayCast(XVector pointa, XVector point,std::function<float(const b2Vec2 &point, const b2Vec2 &normal,unsigned int EntityID,float fraction)> callback);
    
 private:
   static RCback rcb;

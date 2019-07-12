@@ -7,6 +7,7 @@ local StartPoint = XVector.new(0,0)
 local DistanceinX = 0
 local float XDirection = 0
 local SlopeNormal = XVector.new(0,0,0)
+local SlopeEnt = 0
 function math.sign(x)
     if x<0 then
         return -1
@@ -17,21 +18,9 @@ function math.sign(x)
     end
 end
 
-local ClimbSlope = function (velocity,slopeAngle)
-    velocity = XVector.new(math.cos(slopeAngle) * velocity.x,math.sin(slopeAngle) * math.abs(velocity.x))
-    --velocity = velocity * SlopeNormal
-    return velocity
-end
-
-
-
-local DescendSlope = function (velocity,slopeAngle)
-    velocity = XVector.new(math.cos(slopeAngle) * velocity.x, math.sin(slopeAngle) * (velocity.x))
-    return velocity
-end
 
 local horiontalRayCast = function(normal, point , ent)
-
+    SlopeEnt = ent
     DistanceinX = (StartPoint.x - point.x) * -1
 
     SlopeNormal = normal
@@ -43,7 +32,9 @@ local horiontalRayCast = function(normal, point , ent)
         onSlopeRight = false
         onSlopeLeft  = true
     end
+    if(GetPhysicsComponent(ent).slope)then
     onSlope = true
+    end
     DistanceinX = 0
 end
 returnTable["Init"] = function ()
@@ -51,27 +42,26 @@ returnTable["Init"] = function ()
 end
 returnTable["Update"] = function(dt)
 
-   --GetPhysicsComponent(1).velocity = XVector.new(0,0)
-        onSlope = false
-        StartPoint = XVector.new(GetPhysicsComponent(PlayerEnt).position.x + 50,GetPhysicsComponent(PlayerEnt).position.y - 50)
-        PhysicsSystem.rayCast(StartPoint, XVector.new(GetPhysicsComponent(PlayerEnt).position.x + 53,GetPhysicsComponent(PlayerEnt).position.y - 50),horiontalRayCast)
+    onSlope = false
 
-        StartPoint =XVector.new(GetPhysicsComponent(PlayerEnt).position.x + -50,GetPhysicsComponent(PlayerEnt).position.y - 50)
-
-        PhysicsSystem.rayCast(StartPoint, XVector.new(GetPhysicsComponent(PlayerEnt).position.x + -53,GetPhysicsComponent(PlayerEnt).position.y - 50),horiontalRayCast)
+    StartPoint = XVector.new(GetPhysicsComponent(PlayerEnt).position.x + 50,GetPhysicsComponent(PlayerEnt).position.y - 50)
+    PhysicsSystem.rayCast(StartPoint, XVector.new(GetPhysicsComponent(PlayerEnt).position.x + 53,GetPhysicsComponent(PlayerEnt).position.y - 50),horiontalRayCast)
+    StartPoint =XVector.new(GetPhysicsComponent(PlayerEnt).position.x + -50,GetPhysicsComponent(PlayerEnt).position.y - 50)
+    PhysicsSystem.rayCast(StartPoint, XVector.new(GetPhysicsComponent(PlayerEnt).position.x + -53,GetPhysicsComponent(PlayerEnt).position.y - 50),horiontalRayCast)
 
 
     if(Input.isKeyDown(Keys["KEY_D"])) then
 
         local hitpoint = XVector.new(0,0)    
         if(onSlope) then
-   local canceled = false
+        local canceled = false
 
     if(onSlopeRight)then
     
 
-             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x +60,900), XVector.new(GetPhysicsComponent(PlayerEnt).position.x +60,0),
+             PhysicsSystem.filteredRayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x +55,GetPhysicsComponent(PlayerEnt).position.y), XVector.new(GetPhysicsComponent(PlayerEnt).position.x +55,0),SlopeEnt,
                 function(a,b,c) 
+                    if(a ~= SlopeNormal)then  print("DIfferent") print(a) canceled=true end
 
                 hitpoint = b
                 end)
@@ -82,8 +72,9 @@ returnTable["Update"] = function(dt)
 
             else
 
-             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x -40,900), XVector.new(GetPhysicsComponent(PlayerEnt).position.x -40,0),
+             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x -45,GetPhysicsComponent(PlayerEnt).position.y), XVector.new(GetPhysicsComponent(PlayerEnt).position.x -45,0),
                 function(a,b,c) 
+              --      if(a ~= SlopeNormal)then  canceled=true end
                         
                 hitpoint = b
                 end)
@@ -116,15 +107,14 @@ returnTable["Update"] = function(dt)
     end
     if(Input.isKeyDown(Keys["KEY_A"])) then
         local hitpoint = XVector.new(0,0)    
- 	     if(onSlope ) then
-		    local Direction = 0
+         if(onSlope ) then
+            local Direction = 0
             local canceled = false
             if(onSlopeRight)then
     
 
-             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x +40,900), XVector.new(GetPhysicsComponent(PlayerEnt).position.x +40,0),
+             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x +45,GetPhysicsComponent(PlayerEnt).position.y), XVector.new(GetPhysicsComponent(PlayerEnt).position.x +45,0),
                 function(a,b,c) 
-
                 hitpoint = b
                 end)
 
@@ -132,11 +122,12 @@ returnTable["Update"] = function(dt)
 
              Direction = ( hitpoint - XVector.new(GetPhysicsComponent(1).position.x+50, GetPhysicsComponent(1).position.y - 50)):Normal()
 
-			else
+            else
 
-             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x -55,900), XVector.new(GetPhysicsComponent(PlayerEnt).position.x -55,0),
+             PhysicsSystem.filteredRayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x -55,GetPhysicsComponent(PlayerEnt).position.y), XVector.new(GetPhysicsComponent(PlayerEnt).position.x -55,0),SlopeEnt,
                 function(a,b,c) 
                         
+                if(a ~= SlopeNormal)then  canceled=true end
                 hitpoint = b
                 end)
  
@@ -164,12 +155,8 @@ returnTable["Update"] = function(dt)
         end
     end
     
-    --end
-    --onSlope = false
 
---if(not onSlope) then
     GetPhysicsComponent(1).velocity  = XVector.new(GetPhysicsComponent(1).velocity.x , GetPhysicsComponent(1).velocity.y - 1.5)
---end
     if(Input.isKeyDown(Keys["KEY_SPACE"])) then
     local OnGround = false
     PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x,GetPhysicsComponent(PlayerEnt).position.y-50), XVector.new(GetPhysicsComponent(PlayerEnt).position.x,GetPhysicsComponent(PlayerEnt).position.y-56),function(a,b,c)  OnGround = true end)

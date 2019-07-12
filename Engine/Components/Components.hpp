@@ -45,6 +45,7 @@ struct Sprite {
 struct Physics {
   b2Body *body;
   XVector lastpos;
+  bool Slope{false};
 };
 
 //The Reason this Component is big because it has the Error handling logic inside itself

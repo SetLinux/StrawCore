@@ -54,7 +54,7 @@ b2Body* PhysicsSystem::CreateBody(entt::registry& reg, entt::entity id) {
 
 void PhysicsSystem::RayCast(
     XVector pointa, XVector pointb,
-    std::function<void(const b2Vec2 &point, const b2Vec2 &normal,  unsigned int EntityID)> callback) {
+    std::function<float(const b2Vec2 &point, const b2Vec2 &normal,  unsigned int EntityID,float fraction)> callback) {
   rcb.callback = callback;
   m_world->RayCast(&rcb, XVector::ToVec<b2Vec2>(pointa / PPM),
                    XVector::ToVec<b2Vec2>(pointb / PPM));
