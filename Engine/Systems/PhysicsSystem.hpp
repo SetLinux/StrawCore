@@ -15,9 +15,6 @@ public:
       }
       return callback(point,normal,(unsigned int)((long)(fixture->GetBody()->GetUserData())),fraction);
 
-      if((unsigned int)((long)(fixture->GetBody()->GetUserData())) == 2){
-          return fraction;
-      }
     return fraction;
   }
   std::function<float(const b2Vec2& point, const b2Vec2 &normal,unsigned int EntityID,float fraction)> callback;

@@ -33,10 +33,21 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 	};
 	luastate["PhysicsSystem"] = sol::new_table();
     luastate["PhysicsSystem"]["rayCast"] = [](XVector pointa,XVector pointb , sol::function func){
-        Straw::PhysicsSystem::RayCast(pointa,pointb,[func](const b2Vec2& a,const b2Vec2 normal,unsigned int entity,float fraction){
-            func(XVector::fromVec(normal),XVector::fromVec(a) * Straw::PhysicsSystem::PPM,entity);
-        return fraction;
+        XVector point,rnormal;
+        unsigned int ent = 0;
+        float leastfraction = 1.0f;
+        Straw::PhysicsSystem::RayCast(pointa,pointb,[func,&leastfraction,&point,&rnormal,&ent](const b2Vec2& a,const b2Vec2 normal,unsigned int entity,float fraction){
+            if(fraction < leastfraction){
+                leastfraction = fraction;
+                point = XVector::fromVec(a);
+                rnormal =  XVector::fromVec(normal);
+                ent = entity;
+            }
+            return fraction;
         });
+        if(ent > 0)
+        func(XVector::fromVec(rnormal),point * Straw::PhysicsSystem::PPM,ent);
+
     };
     luastate["PhysicsSystem"]["filteredRayCast"] = [](XVector pointa,XVector pointb, unsigned int ent, sol::function func){
         Straw::PhysicsSystem::RayCast(pointa,pointb,[func,ent](const b2Vec2& a,const b2Vec2 normal,unsigned int entity,float fraction){
