@@ -16,6 +16,7 @@ shdr.Init();
 shdr.Use();
 Straw::Rendering::Texture2D tex("Assets/sheet.png");
 tex.Init();
+Camera::main.position.x += 90;
 ScriptingSystem::Init(reg,win);
 std::cout << "TEXTURE: " << tex.id << std::endl;
 ScriptingSystem::ExecuteScript("Assets/KeyBindings.lua");
