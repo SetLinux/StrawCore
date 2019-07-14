@@ -1,5 +1,4 @@
 #pragma once
-#define _USE_MATH_DEFINES
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 #define GLM_FORCE_SIMD_AVX2
 
@@ -13,7 +12,7 @@
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/list.hpp>
-
+static double PI = 3.14159265359;
 struct XVector {
 
   float x, y, z , w;
@@ -131,7 +130,7 @@ template <class T> T XVector::ToVec(const XVector& other, bool zExist) {
   return x;
 }
 static float Radians(float degrees){
-  float multiplier= M_PI / 180.f;
+  float multiplier= PI / 180.f;
   return degrees * multiplier;
 }
 //Fuck Math

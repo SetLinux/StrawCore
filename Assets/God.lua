@@ -8,6 +8,7 @@ local DistanceinX = 0
 local float XDirection = 0
 local SlopeNormal = XVector.new(0,0,0)
 local SlopeEnt = 0
+local Direction = XVector.new(0,0,0)
 function math.sign(x)
     if x<0 then
         return -1
@@ -18,19 +19,13 @@ function math.sign(x)
     end
 end
 
-local ClimbSlope = function (velocity,slopeAngle)
-    velocity = XVector.new(math.cos(slopeAngle) * velocity.x,math.sin(slopeAngle) * math.abs(velocity.x))
-    --velocity = velocity * SlopeNormal
-    return velocity
+
+local GetClimbX = function(xval,slopeAngle)
+
+    return math.cos(slopeAngle) * xval
+
 end
-
-
-
-local DescendSlope = function (velocity,slopeAngle)
-    velocity = XVector.new(math.cos(slopeAngle) * velocity.x, math.sin(slopeAngle) * (velocity.x))
-    return velocity
-end
-
+local difference = 2
 local horiontalRayCast = function(normal, point , ent)
     if(GetPhysicsComponent(ent).slope) then
     SlopeEnt = ent
@@ -54,6 +49,7 @@ returnTable["Init"] = function ()
 end
 local counterf = 0
 returnTable["Update"] = function(dt)
+difference = GetClimbX(16,SlopeDegree)
     counterf = counterf + 1 
             onSlope = false
         StartPoint = XVector.new(GetPhysicsComponent(PlayerEnt).position.x + 50,GetPhysicsComponent(PlayerEnt).position.y - 50)
@@ -75,11 +71,10 @@ returnTable["Update"] = function(dt)
         if(onSlope) then
        local canceled = false
           local hitternormal = XVector.new(0,0,0)
-          local Direction = 0
-   
+      
     if(onSlopeRight)then
     
-             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x +52,GetPhysicsComponent(PlayerEnt).position.y), XVector.new(GetPhysicsComponent(PlayerEnt).position.x +52,0),
+             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x +50 + difference,GetPhysicsComponent(PlayerEnt).position.y), XVector.new(GetPhysicsComponent(PlayerEnt).position.x +50 + difference,0),
                 function(a,b,c) 
                     hitternormal = a
                     if(a ~= SlopeNormal)then  
@@ -87,20 +82,20 @@ returnTable["Update"] = function(dt)
                     hitpoint = b
                 end)
 
+             if(not canceled) then
 
-
-             Direction = ( hitpoint - XVector.new(GetPhysicsComponent(1).position.x+50, GetPhysicsComponent(1).position.y - 50)):Normal()
-
+             Direction = ( hitpoint - XVector.new(GetPhysicsComponent(1).position.x+50, GetPhysicsComponent(1).position.y - 50))
+            end
             else
 
-             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x -47,GetPhysicsComponent(PlayerEnt).position.y), XVector.new(GetPhysicsComponent(PlayerEnt).position.x -47,0),
+             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x - ( 50 - difference) ,GetPhysicsComponent(PlayerEnt).position.y), XVector.new(GetPhysicsComponent(PlayerEnt).position.x - ( 50 - difference),0),
                 function(a,b,c) 
               --      if(a ~= SlopeNormal)then  canceled=true end
                         hitternormal = a
                 hitpoint = b
                 end)
  
-                Direction = ( hitpoint - XVector.new(GetPhysicsComponent(1).position.x-50, GetPhysicsComponent(1).position.y - 50)):Normal()
+                Direction = ( hitpoint - XVector.new(GetPhysicsComponent(1).position.x-50, GetPhysicsComponent(1).position.y - 50))
             
             end
    
@@ -109,11 +104,11 @@ returnTable["Update"] = function(dt)
             end
             if(not canceled) then
 
-            GetPhysicsComponent(1).velocity = Direction  * 16
+            GetPhysicsComponent(1).velocity = Direction  
             else 
 
 
-     --    GetPhysicsComponent(1).velocity = Direction  * 16
+           --   GetPhysicsComponent(1).velocity = Direction 
    
            GetPhysicsComponent(1).velocity = XVector.new(16,GetPhysicsComponent(1).velocity.y) 
             end
@@ -126,12 +121,11 @@ returnTable["Update"] = function(dt)
     if(Input.isKeyDown(Keys["KEY_A"])) then
         local hitpoint = XVector.new(0,0)    
          if(onSlope ) then
-            local Direction = 0
-            local canceled = false
+         local canceled = false
             if(onSlopeRight)then
     
 
-             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x +47,GetPhysicsComponent(PlayerEnt).position.y), XVector.new(GetPhysicsComponent(PlayerEnt).position.x +47,0),
+             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x + ( 50 - difference),GetPhysicsComponent(PlayerEnt).position.y), XVector.new(GetPhysicsComponent(PlayerEnt).position.x + ( 50 - difference),0),
                 function(a,b,c) 
   --                  if(a ~= SlopeNormal)then  canceled=true end
                 hitpoint = b
@@ -139,19 +133,19 @@ returnTable["Update"] = function(dt)
 
 
 
-             Direction = ( hitpoint - XVector.new(GetPhysicsComponent(1).position.x+50, GetPhysicsComponent(1).position.y - 50)):Normal()
+             Direction = ( hitpoint - XVector.new(GetPhysicsComponent(1).position.x+50, GetPhysicsComponent(1).position.y - 50))
 
             else
 
-             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x -52,GetPhysicsComponent(PlayerEnt).position.y), XVector.new(GetPhysicsComponent(PlayerEnt).position.x -52,0),
+             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(PlayerEnt).position.x -( 50 + difference),GetPhysicsComponent(PlayerEnt).position.y), XVector.new(GetPhysicsComponent(PlayerEnt).position.x -( 50 + difference),0),
                 function(a,b,c) 
                         
                 if(a ~= SlopeNormal)then  print("FICL") canceled=true end
                 hitpoint = b
                 end)
- 
-                Direction = ( hitpoint - XVector.new(GetPhysicsComponent(1).position.x-50, GetPhysicsComponent(1).position.y - 50)):Normal()
-            
+        if(not canceled) then
+                Direction = ( hitpoint - XVector.new(GetPhysicsComponent(1).position.x-50, GetPhysicsComponent(1).position.y - 50))
+            end
             end
             if(Distance(hitpoint,GetPhysicsComponent(1).position) > 100) then
                 canceled = true
@@ -165,9 +159,10 @@ returnTable["Update"] = function(dt)
                 CreateEntity(Checker)
             end
             if(not canceled) then
-            GetPhysicsComponent(1).velocity = Direction  * 16
+            GetPhysicsComponent(1).velocity = Direction  
             else 
-            GetPhysicsComponent(1).velocity = XVector.new(-16,GetPhysicsComponent(1).velocity.y) 
+                print("aha")
+           GetPhysicsComponent(1).velocity = XVector.new(-16,GetPhysicsComponent(1).velocity.y) 
             end
         else
             GetPhysicsComponent(1).velocity = XVector.new(-16,GetPhysicsComponent(1).velocity.y) 

@@ -29,7 +29,7 @@ b2Body* PhysicsSystem::CreateBody(XVector pos,XVector scale,float rotation,entt:
 		       pos.y / PhysicsSystem::PPM);
   bodyDef.angle = rotation;
   //bodyDef.fixedRotation = true;
-  //bodyDef.bullet = true;
+  bodyDef.bullet = true;
   
   bodyDef.userData = (void*)(long(id));
   b2Body* m_body  = m_world->CreateBody(&bodyDef);

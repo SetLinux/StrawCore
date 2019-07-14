@@ -47,7 +47,7 @@ reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(re
 reg.get<Straw::Components::Physics>(floor).Slope = true;
 reg.get<Straw::Components::Physics>(floor).body->GetFixtureList()->SetFriction(0.2f);
 floor = reg.create();
-reg.assign<Straw::Components::Transform>(floor,XVector(756,445.9f),XVector(300,60),Radians(0));
+reg.assign<Straw::Components::Transform>(floor,XVector(756,446.9f),XVector(300,60),Radians(0));
 reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
 reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).body->SetType(b2BodyType::b2_staticBody);
 reg.get<Straw::Components::Physics>(floor).body->GetFixtureList()->SetFriction(0.2f);
