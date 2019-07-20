@@ -88,13 +88,20 @@ struct Script {
         for (size_t i  = 0; i < LuaTables.size(); i++) {
             ExecuteLuaFunction(LuaTables[i]["Update"],dt);
 		}
-	}
-	void RunFixedUpdate(float dt) {
+    }
+    void RunFixedUpdate(float dt) {
         for (size_t i = 0; i < LuaTables.size(); i++) {
             ExecuteLuaFunction(LuaTables[i]["FixedUpdate"],dt);
-		}
+        }
 
-	}
+    }
+
+    void RunLateFixedUpdate(float dt) {
+        for (size_t i = 0; i < LuaTables.size(); i++) {
+            ExecuteLuaFunction(LuaTables[i]["LateFixedUpdate"],dt);
+        }
+
+    }
 	std::string fileName;
 	sol::state* luastate;
 	std::vector<sol::table> LuaTables;

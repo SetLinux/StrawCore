@@ -18,7 +18,8 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 		, sol::meta_function::division, sol::overload([](const XVector & self, const XVector & other) {return self / other; }, [](const XVector & self, float other) {return self / other; })
         , sol::meta_function::multiplication, sol::overload([](const XVector & self, const XVector & other) {return self * other; }, [](const XVector & self, float other) {return self * other; })
         ,sol::meta_function::equal_to , [](XVector& a,XVector& b){return a == b;});
-	luastate["Dot"] = [](XVector a, XVector b) {return XVector::Dot(a, b); };
+    luastate.new_usertype<b2Contact>("contact",sol::constructors<>(),"setEnabled",[](b2Contact& cntct,bool val){cntct.SetEnabled(val);});
+    luastate["Dot"] = [](XVector a, XVector b) {return XVector::Dot(a, b); };
 	luastate["Distance"] = [](XVector a, XVector b) {return XVector::Distance(a, b); };
 	luastate["Radians"] = [](float input) {return Radians(input); };
 	//Components Existence Checking
@@ -32,6 +33,7 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 		return tex->id;
 	};
 	luastate["PhysicsSystem"] = sol::new_table();
+
     luastate["PhysicsSystem"]["rayCast"] = [](XVector pointa,XVector pointb , sol::function func){
         XVector point,rnormal;
         unsigned int ent = 0;
@@ -70,7 +72,14 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 			func(((entt::entity)(long)contact->GetFixtureA()->GetBody()->GetUserData()), (entt::entity)((long)contact->GetFixtureB()->GetBody()->GetUserData()), normal);
 		};
 	};
-	
+    collisionBack->presolve = [](const XVector& normal,const unsigned int ent1,const unsigned int ent2,b2Contact* contact){
+
+        auto func = luastate["PhysicsSystem"]["PreSolve"];
+        if (func.valid()) {
+            func(normal,ent1,ent2,contact);
+        };
+
+    };
 	luastate["CreateEntity"] = [&](sol::table tbl) {
 		auto ent = registry.create();
 		tbl.for_each([&](std::pair<sol::object, sol::object> pair) {
@@ -95,7 +104,9 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 		"texID", &Straw::Components::Sprite::texID);
 	luastate.new_usertype <Straw::Components::Physics>("Body", sol::constructors<>(),
 		"new", sol::no_constructor,
+                                                       "mass",[](Straw::Components::Physics& self){ return self.body->GetMass();},
         "slope",&Straw::Components::Physics::Slope,
+        "ApplyImpulse",[](Straw::Components::Physics& self,const XVector& other) {self.body->ApplyLinearImpulseToCenter(XVector::ToVec<b2Vec2>(other),1);},
         "position" , sol::property([](Straw::Components::Physics& self){return XVector::fromVec(self.body->GetPosition()) * Straw::PhysicsSystem::PPM;},[](Straw::Components::Physics& physics,XVector& other){physics.body->SetTransform(XVector::ToVec<b2Vec2>(other / Straw::PhysicsSystem::PPM),0);}),
 		"velocity", sol::property([](Straw::Components::Physics & self) {return XVector::fromVec(self.body->GetLinearVelocity()); }, [](Straw::Components::Physics & self, XVector & other) {
 			self.body->SetLinearVelocity(XVector::ToVec<b2Vec2>(other));
@@ -122,12 +133,22 @@ void ScriptingSystem::ScriptingSystemUpdate(entt::registry& registry,float dt) {
 	}
 }
 void ScriptingSystem::ScriptingSystemFixedUpdate(entt::registry& registry, float dt) {
-	auto view = registry.view<Straw::Components::Script>();
-	for (auto& ent : view) {
-		luastate["owner"] = ent;
-		Straw::Components::Script& script = registry.get<Straw::Components::Script>(ent);
-		script.RunFixedUpdate(dt);
-	}
+    auto view = registry.view<Straw::Components::Script>();
+    for (auto& ent : view) {
+        luastate["owner"] = ent;
+        Straw::Components::Script& script = registry.get<Straw::Components::Script>(ent);
+        script.RunFixedUpdate(dt);
+    }
+}
+
+
+void ScriptingSystem::ScriptingSystemLateFixedUpdate(entt::registry& registry, float dt) {
+    auto view = registry.view<Straw::Components::Script>();
+    for (auto& ent : view) {
+        luastate["owner"] = ent;
+        Straw::Components::Script& script = registry.get<Straw::Components::Script>(ent);
+        script.RunLateFixedUpdate(dt);
+    }
 }
 
 void ScriptingSystem::ExecuteScript(const std::string& fileName) {

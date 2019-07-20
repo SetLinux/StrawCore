@@ -24,7 +24,15 @@ public:
   void BeginContact(b2Contact* contact){
     callback(contact);
   }
+  void PreSolve(b2Contact* contact, const b2Manifold* oldManifold){
+    b2WorldManifold manifold;
+    contact->GetWorldManifold(&manifold);
+    presolve(XVector::fromVec(manifold.normal),(unsigned int)((long)(contact->GetFixtureA()->GetBody()->GetUserData())),(unsigned int)((long)(contact->GetFixtureB()->GetBody()->GetUserData())),contact);
+  }
+
   std::function<void(b2Contact*)> callback;
+   std::function<void(const XVector& normal,const unsigned int ent1,const unsigned int ent2,b2Contact* cntc)> presolve;
+
 };
 
 class PhysicsSystem{

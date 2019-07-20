@@ -16,7 +16,7 @@ shdr.Init();
 shdr.Use();
 Straw::Rendering::Texture2D tex("Assets/sheet.png");
 tex.Init();
-Camera::main.position.x += 90;
+//Camera::main.position.x += 90;
 ScriptingSystem::Init(reg,win);
 std::cout << "TEXTURE: " << tex.id << std::endl;
 ScriptingSystem::ExecuteScript("Assets/KeyBindings.lua");
@@ -59,10 +59,11 @@ reg.get<Straw::Components::Physics>(floor).Slope = true;
 
 win.Loop([&](float alpha,float dt){
     ScriptingSystem::ScriptingSystemUpdate(reg,dt);
-    Straw::PhysicsSystem::PhysicsSystemUpdate(reg,alpha);
+    Straw::PhysicsSystem::PhysicsSystemUpdate(reg,1);
     Straw::RenderingSystem::RenderSystem(reg);
 },[&](float dt){
     ScriptingSystem::ScriptingSystemFixedUpdate(reg,dt);
     Straw::PhysicsSystem::PhysicsSystemFixedUpdate(reg);
+    ScriptingSystem::ScriptingSystemLateFixedUpdate(reg,dt);
 });
 }
