@@ -104,7 +104,8 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 		"texID", &Straw::Components::Sprite::texID);
 	luastate.new_usertype <Straw::Components::Physics>("Body", sol::constructors<>(),
 		"new", sol::no_constructor,
-                                                       "mass",[](Straw::Components::Physics& self){ return self.body->GetMass();},
+        "mass",[](Straw::Components::Physics& self){ return self.body->GetMass();},
+
         "slope",&Straw::Components::Physics::Slope,
         "ApplyImpulse",[](Straw::Components::Physics& self,const XVector& other) {self.body->ApplyLinearImpulseToCenter(XVector::ToVec<b2Vec2>(other),1);},
         "position" , sol::property([](Straw::Components::Physics& self){return XVector::fromVec(self.body->GetPosition()) * Straw::PhysicsSystem::PPM;},[](Straw::Components::Physics& physics,XVector& other){physics.body->SetTransform(XVector::ToVec<b2Vec2>(other / Straw::PhysicsSystem::PPM),0);}),

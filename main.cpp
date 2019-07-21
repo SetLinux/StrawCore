@@ -59,7 +59,7 @@ reg.get<Straw::Components::Physics>(floor).Slope = true;
 
 win.Loop([&](float alpha,float dt){
     ScriptingSystem::ScriptingSystemUpdate(reg,dt);
-    Straw::PhysicsSystem::PhysicsSystemUpdate(reg,1);
+    Straw::PhysicsSystem::PhysicsSystemUpdate(reg,alpha);
     Straw::RenderingSystem::RenderSystem(reg);
 },[&](float dt){
     ScriptingSystem::ScriptingSystemFixedUpdate(reg,dt);
