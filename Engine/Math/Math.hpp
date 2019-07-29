@@ -61,7 +61,9 @@ struct XVector {
   }
 
   XVector operator/(const XVector &other) const {
-    return XVector(x / other.x, y / other.y, z / other.z);
+      float dividedx = x == 0 && other.x == 0 ? 0 : x / other.x;
+      float dividedy = y == 0 && other.y == 0 ? 0 : y / other.y;
+    return XVector(dividedx, dividedy, 0);
   }
 
   // Float Operators OverLoading

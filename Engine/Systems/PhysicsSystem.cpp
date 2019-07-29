@@ -1,15 +1,23 @@
 #include "PhysicsSystem.hpp"
+#define NODEBUG
 namespace Straw{
-int PhysicsSystem::PPM = 50;
-b2World* PhysicsSystem::m_world;
+int PhysicsSystem::PPM = 1;
 RCback PhysicsSystem::rcb;
+
+physx::PxDefaultAllocator PhysicsSystem::defaultAlloc;
+physx::PxDefaultErrorCallback PhysicsSystem::defaultError;
+physx::PxFoundation* PhysicsSystem::mFoundation;
+physx::PxPhysics* PhysicsSystem::mPhysics;
+physx::PxScene* PhysicsSystem::mScene;
+int PhysicsSystem::currentBounces=0,PhysicsSystem::bounceLimit=80;
 void PhysicsSystem::PhysicsSystemFixedUpdate(entt::registry &registry){
   auto view = registry.view<Components::Physics>();
   for(auto& ent : view){
     Components::Physics &physics = registry.get<Components::Physics>(ent);
-    physics.lastpos = XVector::fromVec(physics.body->GetPosition()) * PPM;
+    physics.lastpos = XVector::fromVec(physics.body->getGlobalPose().p) * PPM;
   }
-  m_world->Step(1.f/60.f, 8,4);
+  mScene->simulate(1.f/60.f);
+  mScene->fetchResults(true);
 }
 
 void PhysicsSystem::PhysicsSystemUpdate(entt::registry & registry,float alpha) {
@@ -17,46 +25,58 @@ void PhysicsSystem::PhysicsSystemUpdate(entt::registry & registry,float alpha) {
   for(auto& ent : view){
     Components::Physics &physics = registry.get<Components::Physics>(ent);
     Components::Transform &transform = registry.get<Components::Transform>(ent);
-    transform.position = XVector::Interpolate(physics.lastpos == XVector(0,0) ? XVector::fromVec<b2Vec2>(physics.body->GetPosition()) * PhysicsSystem::PPM : physics.lastpos, XVector::fromVec<b2Vec2>(physics.body->GetPosition()) * PhysicsSystem::PPM, alpha);
+    transform.position = XVector::Interpolate(physics.lastpos == XVector(0,0) ? XVector::fromVec(physics.body->getGlobalPose().p) * PhysicsSystem::PPM : physics.lastpos, XVector::fromVec(physics.body->getGlobalPose().p) * PhysicsSystem::PPM, alpha);
   }
 }
 
-b2Body* PhysicsSystem::CreateBody(XVector pos,XVector scale,float rotation,entt::entity id){
-  b2BodyDef bodyDef;
-  bodyDef.type = b2_dynamicBody;
-  bodyDef.position.Set(
-		       pos.x / PhysicsSystem::PPM,
-		       pos.y / PhysicsSystem::PPM);
-  bodyDef.angle = rotation;
-  //bodyDef.fixedRotation = true;
-  //dddddddbodyDef.bullet = true;
-   bodyDef.bullet = true;
-  bodyDef.userData = (void*)(long(id));
-  b2Body* m_body  = m_world->CreateBody(&bodyDef);
-  b2PolygonShape shape;
-  shape.SetAsBox(
-		 scale.x / 2 / PhysicsSystem::PPM,
-		 scale.y / 2 / PhysicsSystem::PPM);
-  b2FixtureDef fixtureDef;
-  fixtureDef.shape = &shape;
-  fixtureDef.density = 0.5f;
-  fixtureDef.friction = 0.0f;
-  fixtureDef.restitution = 0.0f;
+physx::PxRigidDynamic* PhysicsSystem::CreateBody(XVector pos,XVector scale,float rotation,entt::entity id,bool ignoreCasts){
+    using namespace physx;
+    PxReal cubeDensity = 1000.0f;
+    scale.z = 2;
+    PxBoxGeometry cubeGeomtry(XVector::ToVec<PxVec3>(scale/2.0f / PhysicsSystem::PPM,true));
+    PxTransform cubeTransform(XVector::ToVec<PxVec3>(pos/ PhysicsSystem::PPM,true));
+    cubeTransform.q = PxQuat(rotation,PxVec3(0,0,1));
+    cubeTransform.p = XVector::ToVec<PxVec3>(pos / PhysicsSystem::PPM ,true);
+    PxMaterial* material = mPhysics->createMaterial(0.5f,0.1f,1.0f);
+    PxRigidDynamic* cubeActor = mPhysics->createRigidDynamic(cubeTransform);
+    cubeActor->userData = (void*)(long)id;
+    PxShape* shape = PxRigidActorExt::createExclusiveShape(*cubeActor,cubeGeomtry,*material);
+    std::cout << XVector::fromVec(cubeTransform.getNormalized().p).Normalize() << std::endl;
+    PxFilterData filterData;
+    if(ignoreCasts){
+        filterData.word0 = (1<<3);
+     }else {
+           filterData.word0 = (1<<0);
+     }
 
-  m_body->CreateFixture(&fixtureDef);
-  return m_body;
+    shape->setQueryFilterData(filterData);
+    cubeActor->setRigidDynamicLockFlags(PxRigidDynamicLockFlag::eLOCK_LINEAR_Z | PxRigidDynamicLockFlag::eLOCK_ANGULAR_X | PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y | PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z);
+    cubeActor->setMass(100);
+    mScene->addActor(*cubeActor);
+    return cubeActor;
 }
-b2Body* PhysicsSystem::CreateBody(entt::registry& reg, entt::entity id) {
+physx::PxRigidDynamic* PhysicsSystem::CreateBody(entt::registry& reg, entt::entity id,bool ignoreCasts) {
 	Components::Transform& tran = reg.get<Components::Transform>(id);
-    return CreateBody(tran.position, tran.scale, tran.rotation, id);
+    return CreateBody(tran.position, tran.scale, tran.rotation, id,ignoreCasts);
 
 }
 
 void PhysicsSystem::RayCast(
-    XVector pointa, XVector pointb,
-    std::function<float(const b2Vec2 &point, const b2Vec2 &normal,  unsigned int EntityID,float fraction)> callback) {
-  rcb.callback = callback;
-  m_world->RayCast(&rcb, XVector::ToVec<b2Vec2>(pointa / PPM),
-                   XVector::ToVec<b2Vec2>(pointb / PPM));
+    XVector pointa, XVector direction,float distance,
+    std::function<void(const XVector &point, const XVector &normal,  unsigned int EntityID)> callback) {
+    physx::PxRaycastBuffer buffer;
+    physx::PxQueryFilterData filterData = physx::PxQueryFilterData();
+    filterData.data.word0 = (1 << 0);
+    physx::PxHitFlags hitFlags = physx::PxHitFlag::ePOSITION|physx::PxHitFlag::eNORMAL;
+
+    mScene->raycast(XVector::ToVec<physx::PxVec3>(pointa,true),XVector::ToVec<physx::PxVec3>(direction,true),distance,buffer,hitFlags,filterData);
+   // std::cout << buffer.hasAnyHits() << std::endl;
+    if(buffer.hasAnyHits()){
+
+        unsigned int entity = (unsigned int)(long)buffer.block.actor->userData;
+        XVector point = XVector::fromVec(buffer.block.position);
+        XVector normal = XVector::fromVec(buffer.block.normal);
+        callback(point,normal,entity);
+    }
 }
 } // namespace Straw

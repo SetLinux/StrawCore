@@ -33,54 +33,15 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 		return tex->id;
 	};
 	luastate["PhysicsSystem"] = sol::new_table();
+//Just plain ol' Physx RayCast
+    luastate["PhysicsSystem"]["rayCast"] = [](XVector pointa,XVector direction,float distance , sol::function func){
 
-    luastate["PhysicsSystem"]["rayCast"] = [](XVector pointa,XVector pointb , sol::function func){
-        XVector point,rnormal;
-        unsigned int ent = 0;
-        float leastfraction = 1.0f;
-        Straw::PhysicsSystem::RayCast(pointa,pointb,[func,&leastfraction,&point,&rnormal,&ent](const b2Vec2& a,const b2Vec2 normal,unsigned int entity,float fraction){
-            if(fraction < leastfraction){
-                leastfraction = fraction;
-                point = XVector::fromVec(a);
-                rnormal =  XVector::fromVec(normal);
-                ent = entity;
-            }
-            return fraction;
-        });
-        if(ent > 0)
-        func(XVector::fromVec(rnormal),point * Straw::PhysicsSystem::PPM,ent);
+        Straw::PhysicsSystem::RayCast(pointa,direction,distance,[func](const XVector& a,const XVector normal,unsigned int entity){
 
-    };
-    luastate["PhysicsSystem"]["filteredRayCast"] = [](XVector pointa,XVector pointb, unsigned int ent, sol::function func){
-        Straw::PhysicsSystem::RayCast(pointa,pointb,[func,ent](const b2Vec2& a,const b2Vec2 normal,unsigned int entity,float fraction){
-            if(ent != entity){
-                std::cout << "Filtered : " << entity<< std::endl;
-                return -1.f;
-            }
-            func(XVector::fromVec(normal),XVector::fromVec(a) * Straw::PhysicsSystem::PPM,entity);
-        return fraction;
-        });
+            func(XVector::fromVec(normal),a,entity);
 
-    };
-    Straw::CLBack* collisionBack = new Straw::CLBack();
-	collisionBack->callback = [](b2Contact * contact) {
-		auto func = luastate["PhysicsSystem"]["OnContact"];
-		if (func.valid()) {
-			b2WorldManifold worldManifold;
-			contact->GetWorldManifold(&worldManifold);
-			XVector normal = XVector::fromVec(worldManifold.normal);
-			func(((entt::entity)(long)contact->GetFixtureA()->GetBody()->GetUserData()), (entt::entity)((long)contact->GetFixtureB()->GetBody()->GetUserData()), normal);
-		};
-	};
-    collisionBack->presolve = [](const XVector& normal,const unsigned int ent1,const unsigned int ent2,b2Contact* contact){
-
-        auto func = luastate["PhysicsSystem"]["PreSolve"];
-        if (func.valid()) {
-            func(normal,ent1,ent2,contact);
-        };
-
-    };
-	luastate["CreateEntity"] = [&](sol::table tbl) {
+    });};
+    luastate["CreateEntity"] = [&](sol::table tbl) {
 		auto ent = registry.create();
 		tbl.for_each([&](std::pair<sol::object, sol::object> pair) {
 			std::string key = pair.first.as<std::string>();
@@ -93,7 +54,7 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 			});
 		return ent;
 	};
-	Straw::PhysicsSystem::m_world->SetContactListener(collisionBack);
+    //Straw::PhysicsSystem::m_world->SetContactListener(collisionBack);
 	//Input Binding 
 	luastate["Input"] = sol::new_table();
 	luastate["Input"]["isKeyDown"] = [&](int keynum) {return glfwGetKey(win.m_window,keynum) == GLFW_PRESS; };
@@ -102,16 +63,34 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 	luastate.new_usertype <Straw::Components::Sprite>("Sprite", sol::constructors<>(),
 		"new", sol::no_constructor,
 		"texID", &Straw::Components::Sprite::texID);
-	luastate.new_usertype <Straw::Components::Physics>("Body", sol::constructors<>(),
+
+    luastate.new_usertype <Straw::Components::Physics>("Body", sol::constructors<>(),
 		"new", sol::no_constructor,
-        "mass",[](Straw::Components::Physics& self){ return self.body->GetMass();},
+        "mass",[](Straw::Components::Physics& self){ return self.body->getMass();},
 
         "slope",&Straw::Components::Physics::Slope,
-        "ApplyImpulse",[](Straw::Components::Physics& self,const XVector& other) {self.body->ApplyLinearImpulseToCenter(XVector::ToVec<b2Vec2>(other),1);},
-        "position" , sol::property([](Straw::Components::Physics& self){return XVector::fromVec(self.body->GetPosition()) * Straw::PhysicsSystem::PPM;},[](Straw::Components::Physics& physics,XVector& other){physics.body->SetTransform(XVector::ToVec<b2Vec2>(other / Straw::PhysicsSystem::PPM),0);}),
-		"velocity", sol::property([](Straw::Components::Physics & self) {return XVector::fromVec(self.body->GetLinearVelocity()); }, [](Straw::Components::Physics & self, XVector & other) {
-			self.body->SetLinearVelocity(XVector::ToVec<b2Vec2>(other));
-			}));
+        "position" , sol::property([](Straw::Components::Physics& self){return XVector::fromVec(self.body->getGlobalPose().p) * Straw::PhysicsSystem::PPM;},[](Straw::Components::Physics& physics,XVector& other){
+        physx::PxTransform temptransform;
+        temptransform.p = XVector::ToVec<physx::PxVec3>(other);
+        temptransform.q = physx::PxQuat(1.0f);
+        physics.body->setGlobalPose(temptransform);}
+    ));
+    luastate["PhysicsSystem"]["MovePlayer"] = [&](const XVector& pos,const XVector& vel){
+        Straw::PhysicsSystem::currentBounces=0;
+        std::tuple<physx::PxTransform,physx::PxVec3> matuple = (Straw::PhysicsSystem::MovePlayer(registry,XVector::ToVec<physx::PxVec3>(pos,true),XVector::ToVec<physx::PxVec3>(vel,true),0,0));
+        physx::PxTransform final = std::get<0>(matuple);
+       // std::cout << "RELFECTION :  " << XVector::fromVec(std::get<1>(matuple));
+       // if(std::get<1>(matuple).x != 0){
+        // final =  std::get<0>(Straw::PhysicsSystem::MovePlayer(registry,std::get<0>(matuple).p,physx::PxVec3(std::get<1>(matuple).x,0,0),0,0));
+        //}
+       // if(std::get<1>(matuple).y != 0) {
+       // final = std::get<0>(Straw::PhysicsSystem::MovePlayer(registry,final.p,physx::PxVec3(0,std::get<1>(matuple).y,0),0,0));
+        //شش}
+        registry.get<Straw::Components::Physics>(1).body->setGlobalPose(final);
+
+
+    };
+
 	luastate.new_usertype<Straw::Components::Transform>("Transform", sol::constructors<>(), "new", sol::no_constructor, "position", &Straw::Components::Transform::position, "scale", &Straw::Components::Transform::scale, "rotation", &Straw::Components::Transform::rotation);
 
 	luastate["GetTransformComponent"] = [&](entt::entity ent) {

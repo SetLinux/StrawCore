@@ -41,6 +41,6 @@ ${CMAKE_CURRENT_SOURCE_DIR}/libs/SOIL2/srcs/image_DXT.c
 ${CMAKE_CURRENT_SOURCE_DIR}/libs/SOIL2/srcs/image_helper.c
 main.cpp
 )
-target_include_directories(test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/libs/SOIL2/incs ${CMAKE_CURRENT_SOURCE_DIR}/libs/ )
+target_include_directories(test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/libs/SOIL2/incs ${CMAKE_CURRENT_SOURCE_DIR}/libs/ ${CMAKE_CURRENT_SOURCE_DIR}/libs/include/ )
 
-target_link_libraries(test PRIVATE GL glfw tbb GLEW ${LUA53_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${GLFW_LIBRARIES} ${CMAKE_CURRENT_SOURCE_DIR}/libs/Box2D/libBox2D.a)
+target_link_libraries(test PRIVATE GL glfw tbb GLEW ${LUA53_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}   ${GLFW_LIBRARIES}    ${CMAKE_CURRENT_SOURCE_DIR}/libs/libPhysX_static_64.a  ${CMAKE_CURRENT_SOURCE_DIR}/libs/libPhysXPvdSDK_static_64.a ${CMAKE_CURRENT_SOURCE_DIR}/libs/libPhysXExtensions_static_64.a ${CMAKE_CURRENT_SOURCE_DIR}/libs/libPhysXFoundation_static_64.a  ${CMAKE_CURRENT_SOURCE_DIR}/libs/libPhysXCommon_static_64.a dl   ${CMAKE_CURRENT_SOURCE_DIR}/libs/Box2D/libBox2D.a)

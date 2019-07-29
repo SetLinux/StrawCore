@@ -1,6 +1,7 @@
 #pragma once
 #include "../Math/Math.hpp"
-#include <Box2D/Box2D.h>
+
+#include <include/PxPhysicsAPI.h>
 #include <sol.hpp>
 namespace Straw {
 namespace Components {
@@ -43,7 +44,7 @@ struct Sprite {
   unsigned int ShdrID{ 0 };
 };
 struct Physics {
-  b2Body *body;
+  physx::PxRigidDynamic *body;
   XVector lastpos;
   bool Slope{false};
 };
