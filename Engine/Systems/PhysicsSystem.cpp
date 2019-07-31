@@ -9,7 +9,7 @@ physx::PxDefaultErrorCallback PhysicsSystem::defaultError;
 physx::PxFoundation* PhysicsSystem::mFoundation;
 physx::PxPhysics* PhysicsSystem::mPhysics;
 physx::PxScene* PhysicsSystem::mScene;
-int PhysicsSystem::currentBounces=0,PhysicsSystem::bounceLimit=80;
+int PhysicsSystem::currentBounces=0,PhysicsSystem::bounceLimit=4;
 void PhysicsSystem::PhysicsSystemFixedUpdate(entt::registry &registry){
   auto view = registry.view<Components::Physics>();
   for(auto& ent : view){

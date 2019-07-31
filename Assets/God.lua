@@ -13,6 +13,7 @@ local State = {Standing = "Standing",MoveRight="MoveRight",MoveLeft="MoveLeft",a
 local PlayerState = State.Standing
 local Descending = false
 local Player = {velocity = XVector.new(0,0)}
+local onGround = false
 function math.sign(x)
     if x<0 then
         return -1
@@ -72,7 +73,9 @@ returnTable["FixedUpdate"] = function (dt)
     --Player.velocity.y = 0
     onSlopeRight = false
     onSlopeLeft = false
-    local SlopeSpeed = 16
+    onGround = false
+    local SlopeSpeed = 20
+    local buildupspeed = 15
     PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x+ 23,GetPhysicsComponent(1).position.y - 25),XVector.new(1,0,0),4,function(normal1,point,ent)
         if(GetPhysicsComponent(ent).slope) then
         onSlopeRight = true
@@ -109,9 +112,10 @@ returnTable["FixedUpdate"] = function (dt)
 
         if(onSlopeRight) then
             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x + 25 + GetClimbX(SlopeSpeed,Radians(45)),GetPhysicsComponent(1).position.y + 20),XVector.new(0,-1,0),100000,function(normal2,point,ent)
+                    onGround = true
                     local Direction = point - XVector.new(GetPhysicsComponent(1).position.x+25,GetPhysicsComponent(1).position.y-25)
                     if(SlopeNormal ~= normal2)then
-                        Player.velocity = XVector.new(GetClimbX(SlopeSpeed,Radians(45)),GetClimbY(SlopeSpeed,Radians(45)))
+                        Player.velocity = XVector.new(GetClimbX(buildupspeed,Radians(45)),GetClimbY(buildupspeed,Radians(45)))
                         --Player.velocity = Direction
                     else
                         Player.velocity = Direction
@@ -123,10 +127,10 @@ returnTable["FixedUpdate"] = function (dt)
 
         if(onSlopeLeft) then
             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x - 25 + GetClimbX(SlopeSpeed,Radians(-45)),GetPhysicsComponent(1).position.y + 20),XVector.new(0,-1,0),100000,function(normal2,point,ent)
-
+                        onGround = true
                         local Direction = point - XVector.new(GetPhysicsComponent(1).position.x-25,GetPhysicsComponent(1).position.y-25)
                         if(SlopeNormal ~= normal2)then
-                            Player.velocity = XVector.new(GetClimbX(SlopeSpeed,Radians(-45)),GetClimbY(SlopeSpeed,Radians(-45)))
+                            Player.velocity = XVector.new(GetClimbX(buildupspeed,Radians(-45)),GetClimbY(buildupspeed,Radians(-45)))
                             Descending = true
                         else
                             Player.velocity = Direction
@@ -159,10 +163,11 @@ returnTable["FixedUpdate"] = function (dt)
 
         if(onSlopeRight) then
             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x + 25 - GetClimbX(SlopeSpeed,45),GetPhysicsComponent(1).position.y + 20),XVector.new(0,-1,0),100000,function(normal2,point,ent)
+                    onGround = true
                     local Direction = point - XVector.new(GetPhysicsComponent(1).position.x+25,GetPhysicsComponent(1).position.y-25)
                     if(SlopeNormal ~= normal2)then
                         Descending = true
-                        Player.velocity = XVector.new(GetClimbX(-SlopeSpeed,Radians(45)),GetClimbY(-SlopeSpeed,Radians(45)))
+                        Player.velocity = XVector.new(GetClimbX(-buildupspeed,Radians(45)),GetClimbY(-buildupspeed,Radians(45)))
                         --Player.velocity = Direction
                     else
                         Descending = true
@@ -175,10 +180,10 @@ returnTable["FixedUpdate"] = function (dt)
 
         if(onSlopeLeft) then
             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x - 25 - GetClimbX(SlopeSpeed,Radians(-45)) ,GetPhysicsComponent(1).position.y + 20),XVector.new(0,-1,0),100000,function(normal2,point,ent)
-
+                        onGround = true
                         local Direction = point - XVector.new(GetPhysicsComponent(1).position.x-25,GetPhysicsComponent(1).position.y-25)
                         if(SlopeNormal ~= normal2)then
-                            Player.velocity = XVector.new(GetClimbX(-SlopeSpeed,Radians(-45)),GetClimbY(-SlopeSpeed,Radians(-45)))
+                            Player.velocity = XVector.new(GetClimbX(-buildupspeed,Radians(-45)),GetClimbY(-buildupspeed,Radians(-45)))
 
                         else
                             Player.velocity = Direction
@@ -191,11 +196,12 @@ returnTable["FixedUpdate"] = function (dt)
             Player.velocity.x = -10
         end
     end
-    if(Input.isKeyDown(Keys["KEY_SPACE"])) then
-        PhysicsSystem.rayCast(GetPhysicsComponent(1).position,XVector.new(0,-1,0),26,function(normal,point,ent)Player.velocity.y =  40 end)
-        PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x+25,GetPhysicsComponent(1).position.y-25),XVector.new(0,-1,0),1,function(normal,point,ent)  Player.velocity.y =  40 end)
-        PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x-25,GetPhysicsComponent(1).position.y-25),XVector.new(0,-1,0),1,function(normal,point,ent)   Player.velocity.y = 40 end)
+            PhysicsSystem.rayCast(GetPhysicsComponent(1).position,XVector.new(0,-1,0),26,function(normal,point,ent)onGround = true end)
+        PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x+24,GetPhysicsComponent(1).position.y-25),XVector.new(0,-1,0),2,function(normal,point,ent)  onGround = true end)
+        PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x-24,GetPhysicsComponent(1).position.y-25),XVector.new(0,-1,0),2,function(normal,point,ent)   onGround = true end)
 
+    if(Input.isKeyDown(Keys["KEY_SPACE"]) and onGround) then
+        Player.velocity.y = 40
     end
 
 end
