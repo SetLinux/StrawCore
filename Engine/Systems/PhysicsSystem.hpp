@@ -45,7 +45,7 @@ public:
   static physx::PxPhysics* mPhysics;
   static physx::PxScene* mScene;
   static int currentBounces,bounceLimit;
-  static std::tuple<physx::PxTransform,physx::PxVec3> MovePlayer(entt::registry& reg,physx::PxVec3 pos,physx::PxVec3  vel,const float xOffset,const float yOffset) {
+  static std::tuple<physx::PxTransform,physx::PxVec3,bool> MovePlayer(entt::registry& reg,physx::PxVec3 pos,physx::PxVec3  vel,const float xOffset,const float yOffset,bool ignore = false) {
       using namespace physx;
       if(currentBounces <= bounceLimit){
           currentBounces++;
@@ -57,39 +57,46 @@ public:
       XVector scale;
       scale = reg.get<Straw::Components::Transform>(1).scale;
       scale.z=2;
-      PxBoxGeometry cubeGeomtry(XVector::ToVec<PxVec3>(XVector(49.5,49.5,5,2)/2.0f,true));
+      PxBoxGeometry cubeGeomtry(XVector::ToVec<PxVec3>(XVector(50,50,5,2)/2.0f,true));
       PxTransform playertransform;
-      playertransform.p = PxVec3(pos.x+.5f ,pos.y - .5f ,0);
+      playertransform.p = PxVec3(pos.x ,pos.y ,0);
       playertransform.q = PxQuat(1.0);
       PxSweepBuffer hit;
 
       PxQueryFilterData filterData = PxQueryFilterData();
       filterData.data.word0 =  (1<<0);
       bool hitCount =  Straw::PhysicsSystem::mScene->sweep(cubeGeomtry,playertransform,vel.getNormalized(),vel.magnitude(),hit,hitFlags,filterData);
-       if(hit.hasAnyHits() ){
+       if(hit.hasAnyHits() && !ignore){
        PxVec3 groundnormal = hit.block.normal;
-
-       expectedtransform.p = pos + vel.getNormalized() * (hit.block.distance - .4f);
+       expectedtransform.p = pos + vel.getNormalized() * (hit.block.distance - 0.04f);
        float TOI = (XVector::fromVec(pos - expectedtransform.p) / XVector::fromVec(vel)).Magnitude();
        float dotproduct = (vel.x * groundnormal.y+vel.y*groundnormal.x) * (1 - TOI);
+       XVector hittenscale = reg.get<Straw::Components::Transform>((unsigned int)(long)hit.block.actor->userData).scale;
+       PxBoxGeometry hittenGeo(XVector::ToVec<PxVec3>(XVector(scale.x,scale.y,3) / 2));
+       PxVec3 penvec;
+        PxF32 pendepty;
+        physx::PxGeometryQuery::computePenetration(penvec,pendepty,cubeGeomtry,expectedtransform,hittenGeo,hit.block.actor->getGlobalPose());
         if((expectedtransform.p - pos) != PxVec3(0,0,0)){
-       PxTransform Step1 = std::get<0>(MovePlayer(reg,pos + vel.getNormalized() * 0.01f,(expectedtransform.p - pos) - vel.getNormalized() * 0.01f,0,0));
-       return std::make_tuple(Step1,PxVec3(dotproduct* groundnormal.y,dotproduct*groundnormal.x,0));
+       std::tuple<PxTransform,PxVec3,bool> Step1 =(MovePlayer(reg,pos + vel.getNormalized() * 0.01f,(expectedtransform.p - pos) - vel.getNormalized() * 0.01f ,0,0));
+       return std::make_tuple(std::get<0>(Step1),PxVec3(dotproduct* groundnormal.y,dotproduct*groundnormal.x,0),true);
+
 
        }
-       return std::make_tuple(expectedtransform,PxVec3(0.0f));
+       return std::make_tuple(expectedtransform,PxVec3(0.0f),true);
       }else{
           PxTransform tran;
           tran.p = expectedtransform.p;
           tran.q = PxQuat(1.0f);
-          return std::make_tuple(tran,PxVec3(0,0,0));
+          return std::make_tuple(tran,PxVec3(0,0,0),false);
+          std::cout << " WERIDO" << std::endl;
       }
       }else{
 
           PxTransform tran;
           tran.p = pos+ vel;
           tran.q = PxQuat(1.0f);
-        return std::make_tuple(tran,PxVec3(0,0,0));
+          std::cout << " I GIVE UP" << currentBounces << std::endl;
+        return std::make_tuple(tran,PxVec3(0,0,0),false);
       }
 
   }

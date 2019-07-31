@@ -75,19 +75,20 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
         temptransform.q = physx::PxQuat(1.0f);
         physics.body->setGlobalPose(temptransform);}
     ));
-    luastate["PhysicsSystem"]["MovePlayer"] = [&](const XVector& pos,const XVector& vel){
+    luastate["PhysicsSystem"]["MovePlayer"] = [&](const XVector& pos,const XVector& vel,bool ignore){
         Straw::PhysicsSystem::currentBounces=0;
-        std::tuple<physx::PxTransform,physx::PxVec3> matuple = (Straw::PhysicsSystem::MovePlayer(registry,XVector::ToVec<physx::PxVec3>(pos,true),XVector::ToVec<physx::PxVec3>(vel,true),0,0));
+        std::tuple<physx::PxTransform,physx::PxVec3,bool> matuple = (Straw::PhysicsSystem::MovePlayer(registry,XVector::ToVec<physx::PxVec3>(pos,true),XVector::ToVec<physx::PxVec3>(vel,true),0,0,ignore));
         physx::PxTransform final = std::get<0>(matuple);
-       // std::cout << "RELFECTION :  " << XVector::fromVec(std::get<1>(matuple));
-       // if(std::get<1>(matuple).x != 0){
-        // final =  std::get<0>(Straw::PhysicsSystem::MovePlayer(registry,std::get<0>(matuple).p,physx::PxVec3(std::get<1>(matuple).x,0,0),0,0));
-        //}
-       // if(std::get<1>(matuple).y != 0) {
-       // final = std::get<0>(Straw::PhysicsSystem::MovePlayer(registry,final.p,physx::PxVec3(0,std::get<1>(matuple).y,0),0,0));
-        //شش}
+      /*
+        if(std::get<1>(matuple).x != 0){
+         final =  std::get<0>(Straw::PhysicsSystem::MovePlayer(registry,std::get<0>(matuple).p,physx::PxVec3(std::get<1>(matuple).x,0,0),0,0));
+        }
+        if(std::get<1>(matuple).y != 0) {
+       final = std::get<0>(Straw::PhysicsSystem::MovePlayer(registry,final.p,physx::PxVec3(0,std::get<1>(matuple).y,0),0,0));
+        }
+*/
         registry.get<Straw::Components::Physics>(1).body->setGlobalPose(final);
-
+        return (std::get<2>(matuple));
 
     };
 

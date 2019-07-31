@@ -41,7 +41,6 @@ physx::PxRigidDynamic* PhysicsSystem::CreateBody(XVector pos,XVector scale,float
     PxRigidDynamic* cubeActor = mPhysics->createRigidDynamic(cubeTransform);
     cubeActor->userData = (void*)(long)id;
     PxShape* shape = PxRigidActorExt::createExclusiveShape(*cubeActor,cubeGeomtry,*material);
-    std::cout << XVector::fromVec(cubeTransform.getNormalized().p).Normalize() << std::endl;
     PxFilterData filterData;
     if(ignoreCasts){
         filterData.word0 = (1<<3);
@@ -67,7 +66,7 @@ void PhysicsSystem::RayCast(
     physx::PxRaycastBuffer buffer;
     physx::PxQueryFilterData filterData = physx::PxQueryFilterData();
     filterData.data.word0 = (1 << 0);
-    physx::PxHitFlags hitFlags = physx::PxHitFlag::ePOSITION|physx::PxHitFlag::eNORMAL;
+    physx::PxHitFlags hitFlags = physx::PxHitFlag::ePOSITION|physx::PxHitFlag::eNORMAL|physx::PxHitFlag::eMTD;
 
     mScene->raycast(XVector::ToVec<physx::PxVec3>(pointa,true),XVector::ToVec<physx::PxVec3>(direction,true),distance,buffer,hitFlags,filterData);
    // std::cout << buffer.hasAnyHits() << std::endl;

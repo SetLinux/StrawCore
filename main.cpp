@@ -9,7 +9,7 @@
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
-static int bounceLimit = 4;
+static int bounceLimit = 2;
 static int currentBounces= 0;
 struct  UserCallback : physx::PxSweepCallback{
 
@@ -34,9 +34,9 @@ physx::PxTransform MovePlayer(entt::registry& reg,physx::PxVec3 pos,physx::PxVec
     XVector scale;
     scale = reg.get<Straw::Components::Transform>(1).scale;
     scale.z=2;
-    PxBoxGeometry cubeGeomtry(XVector::ToVec<PxVec3>(XVector(49.5,49.5,5,2)/2.0f,true));
+    PxBoxGeometry cubeGeomtry(XVector::ToVec<PxVec3>(XVector(50,50,5,2)/2.0f,true));
     PxTransform playertransform;
-    playertransform.p = PxVec3(pos.x+.5f ,pos.y - .5f ,0);
+    playertransform.p = PxVec3(pos.x ,pos.y ,0);
     playertransform.q = PxQuat(1.0);
     PxSweepBuffer hit;
 
@@ -82,7 +82,7 @@ shdr.Init();
 shdr.Use();
 Straw::Rendering::Texture2D tex("Assets/sheet.png");
 tex.Init();
-Camera::main.position.y += 150;
+//Camera::main.position.x += 350;
 ScriptingSystem::Init(reg,win);
 ScriptingSystem::ExecuteScript("Assets/KeyBindings.lua");
 auto ScriptGod = reg.create();
@@ -98,7 +98,7 @@ reg.assign<Straw::Components::Transform>(floor,XVector(500,000),XVector(900,100)
 reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
 reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).body->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC,true);
 floor = reg.create();
-reg.assign<Straw::Components::Transform>(floor,XVector(900,000),XVector(800,100),Radians(50));
+reg.assign<Straw::Components::Transform>(floor,XVector(900,000),XVector(800,100),Radians(45));
 reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
 reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).body->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC,true);
 reg.get<Straw::Components::Physics>(floor).Slope = true;
@@ -117,7 +117,7 @@ floor = reg.create();
 reg.assign<Straw::Components::Transform>(floor,XVector(500,300),XVector(400,150),Radians(0));
 reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
 reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).body->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC,true);
-//reg.get<Straw::Components::Physics>(floor).Slope = true;
+reg.get<Straw::Components::Physics>(floor).Slope = false;
 
 win.Loop([&](float alpha,float dt){
     ScriptingSystem::ScriptingSystemUpdate(reg,dt);
