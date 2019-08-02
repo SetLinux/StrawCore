@@ -9,7 +9,7 @@ physx::PxDefaultErrorCallback PhysicsSystem::defaultError;
 physx::PxFoundation* PhysicsSystem::mFoundation;
 physx::PxPhysics* PhysicsSystem::mPhysics;
 physx::PxScene* PhysicsSystem::mScene;
-int PhysicsSystem::currentBounces=0,PhysicsSystem::bounceLimit=4;
+int PhysicsSystem::currentBounces=0,PhysicsSystem::bounceLimit=50;
 void PhysicsSystem::PhysicsSystemFixedUpdate(entt::registry &registry){
   auto view = registry.view<Components::Physics>();
   for(auto& ent : view){
@@ -55,14 +55,14 @@ physx::PxRigidDynamic* PhysicsSystem::CreateBody(XVector pos,XVector scale,float
     return cubeActor;
 }
 physx::PxRigidDynamic* PhysicsSystem::CreateBody(entt::registry& reg, entt::entity id,bool ignoreCasts) {
-	Components::Transform& tran = reg.get<Components::Transform>(id);
+    Components::Transform& tran = reg.get<Components::Transform>(id);
     return CreateBody(tran.position, tran.scale, tran.rotation, id,ignoreCasts);
 
 }
 
 void PhysicsSystem::RayCast(
     XVector pointa, XVector direction,float distance,
-    std::function<void(const XVector &point, const XVector &normal,  unsigned int EntityID)> callback) {
+    std::function<void(const XVector &point, const XVector &normal, float distancer, unsigned int EntityID)> callback) {
     physx::PxRaycastBuffer buffer;
     physx::PxQueryFilterData filterData = physx::PxQueryFilterData();
     filterData.data.word0 = (1 << 0);
@@ -75,7 +75,7 @@ void PhysicsSystem::RayCast(
         unsigned int entity = (unsigned int)(long)buffer.block.actor->userData;
         XVector point = XVector::fromVec(buffer.block.position);
         XVector normal = XVector::fromVec(buffer.block.normal);
-        callback(point,normal,entity);
+        callback(point,normal,buffer.block.distance,entity);
     }
 }
 } // namespace Straw

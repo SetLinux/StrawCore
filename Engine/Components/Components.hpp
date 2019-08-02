@@ -47,6 +47,7 @@ struct Physics {
   physx::PxRigidDynamic *body;
   XVector lastpos;
   bool Slope{false};
+  bool oneWay{false};
 };
 
 //The Reason this Component is big because it has the Error handling logic inside itself

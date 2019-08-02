@@ -36,9 +36,9 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 //Just plain ol' Physx RayCast
     luastate["PhysicsSystem"]["rayCast"] = [](XVector pointa,XVector direction,float distance , sol::function func){
 
-        Straw::PhysicsSystem::RayCast(pointa,direction,distance,[func](const XVector& a,const XVector normal,unsigned int entity){
+        Straw::PhysicsSystem::RayCast(pointa,direction,distance,[func](const XVector& point,const XVector normal,float distancer,unsigned int entity){
 
-            func(XVector::fromVec(normal),a,entity);
+            func(XVector::fromVec(normal),point,distancer,entity);
 
     });};
     luastate["CreateEntity"] = [&](sol::table tbl) {
@@ -75,9 +75,9 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
         temptransform.q = physx::PxQuat(1.0f);
         physics.body->setGlobalPose(temptransform);}
     ));
-    luastate["PhysicsSystem"]["MovePlayer"] = [&](const XVector& pos,const XVector& vel,bool ignore){
+    luastate["PhysicsSystem"]["MovePlayer"] = [&](const XVector& pos,const XVector& vel,float xOffset,float yOffset,bool ignore){
         Straw::PhysicsSystem::currentBounces=0;
-        std::tuple<physx::PxTransform,physx::PxVec3,bool> matuple = (Straw::PhysicsSystem::MovePlayer(registry,XVector::ToVec<physx::PxVec3>(pos,true),XVector::ToVec<physx::PxVec3>(vel,true),0,0,ignore));
+        std::tuple<physx::PxTransform,physx::PxVec3,bool> matuple = (Straw::PhysicsSystem::MovePlayer(registry,XVector::ToVec<physx::PxVec3>(pos,true),XVector::ToVec<physx::PxVec3>(vel,true),xOffset,yOffset,ignore));
         physx::PxTransform final = std::get<0>(matuple);
       /*
         if(std::get<1>(matuple).x != 0){

@@ -108,10 +108,10 @@ reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
 reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).body->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC,true);
 reg.get<Straw::Components::Physics>(floor).Slope = true;
 floor = reg.create();
-reg.assign<Straw::Components::Transform>(floor,XVector(756,546.9f),XVector(300,60),Radians(45));
+reg.assign<Straw::Components::Transform>(floor,XVector(756,546.9f),XVector(300,60),Radians(0));
 reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
 reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).body->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC,true);
-reg.get<Straw::Components::Physics>(floor).Slope = true;
+reg.get<Straw::Components::Physics>(floor).Slope = false;
 
 floor = reg.create();
 reg.assign<Straw::Components::Transform>(floor,XVector(500,300),XVector(400,150),Radians(0));

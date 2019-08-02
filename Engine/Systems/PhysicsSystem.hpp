@@ -45,7 +45,7 @@ public:
   static physx::PxPhysics* mPhysics;
   static physx::PxScene* mScene;
   static int currentBounces,bounceLimit;
-  static std::tuple<physx::PxTransform,physx::PxVec3,bool> MovePlayer(entt::registry& reg,physx::PxVec3 pos,physx::PxVec3  vel,const float xOffset,const float yOffset,bool ignore = false) {
+  static std::tuple<physx::PxTransform,physx::PxVec3,bool> MovePlayer(entt::registry& reg,physx::PxVec3 pos,physx::PxVec3  vel,const float xOffset,const float yOffset,bool ignore= false) {
       using namespace physx;
       if(currentBounces <= bounceLimit){
           currentBounces++;
@@ -66,13 +66,26 @@ public:
       PxQueryFilterData filterData = PxQueryFilterData();
       filterData.data.word0 =  (1<<0);
       bool hitCount =  Straw::PhysicsSystem::mScene->sweep(cubeGeomtry,playertransform,vel.getNormalized(),vel.magnitude(),hit,hitFlags,filterData);
-       if(hit.hasAnyHits() && !ignore){
+      bool cancel = false;
+      if(hit.hasAnyHits()){
+      XVector hittenscale = reg.get<Straw::Components::Transform>((unsigned int)(long)hit.block.actor->userData).scale;
+       PxVec3 actualvel = vel + PxVec3(xOffset,yOffset,0);
+      if(((hit.block.position.y - (hit.block.actor->getGlobalPose().p.y - (hittenscale.y/2))) >1 && !hit.block.hadInitialOverlap() && hit.block.position.y < playertransform.p.y + 25) ){
+          std::cout<<"one way"<< (hit.block.position.y - (hit.block.actor->getGlobalPose().p.y - (hittenscale.y/2))) << std::endl;
+          cancel = true;
+          if((actualvel.x !=0 && actualvel.y > 0)){cancel = false;}
+
+      };
+
+      }
+      if(hit.hasAnyHits() && !ignore && cancel){
        PxVec3 groundnormal = hit.block.normal;
        expectedtransform.p = pos + vel.getNormalized() * (hit.block.distance - 0.04f);
        float TOI = (XVector::fromVec(pos - expectedtransform.p) / XVector::fromVec(vel)).Magnitude();
+       std::cout << "Successful HIT " << TOI << ":" << XVector::fromVec(vel)<<std::endl;
        float dotproduct = (vel.x * groundnormal.y+vel.y*groundnormal.x) * (1 - TOI);
        XVector hittenscale = reg.get<Straw::Components::Transform>((unsigned int)(long)hit.block.actor->userData).scale;
-       PxBoxGeometry hittenGeo(XVector::ToVec<PxVec3>(XVector(scale.x,scale.y,3) / 2));
+       PxBoxGeometry hittenGeo(XVector::ToVec<PxVec3>(XVector(hittenscale.x,hittenscale.y,3) / 2));
        PxVec3 penvec;
         PxF32 pendepty;
         physx::PxGeometryQuery::computePenetration(penvec,pendepty,cubeGeomtry,expectedtransform,hittenGeo,hit.block.actor->getGlobalPose());
@@ -126,7 +139,7 @@ public:
   static physx::PxRigidDynamic *CreateBody(XVector pos, XVector scale,float rotation, entt::entity id = 0,bool ignoreCasts = false);
   static physx::PxRigidDynamic *CreateBody(entt::registry& reg,entt::entity id,bool ignoreCasts = false);
   static void
-  RayCast(XVector pointa, XVector direction,float distance,std::function<void(const XVector &point, const XVector &normal,unsigned int EntityID)> callback);
+  RayCast(XVector pointa, XVector direction,float distance,std::function<void(const XVector &point, const XVector &normal,float distancer,unsigned int EntityID)> callback);
 
 private:
   static RCback rcb;
