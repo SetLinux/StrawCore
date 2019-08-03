@@ -3,6 +3,10 @@
 
 #include <include/PxPhysicsAPI.h>
 #include <sol.hpp>
+struct  PhysicsBodyJoint{
+    physx::PxRigidDynamic* body;
+    physx::PxShape* shape;
+};
 namespace Straw {
 namespace Components {
 	
@@ -44,10 +48,16 @@ struct Sprite {
   unsigned int ShdrID{ 0 };
 };
 struct Physics {
-  physx::PxRigidDynamic *body;
+  PhysicsBodyJoint bodyjoint;
   XVector lastpos;
   bool Slope{false};
   bool oneWay{false};
+  void SetOneWay(unsigned int flag){
+
+    physx::PxFilterData queryflag;
+    queryflag.word0 = flag;
+    bodyjoint.shape->setQueryFilterData(queryflag);
+  }
 };
 
 //The Reason this Component is big because it has the Error handling logic inside itself

@@ -66,14 +66,14 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 
     luastate.new_usertype <Straw::Components::Physics>("Body", sol::constructors<>(),
 		"new", sol::no_constructor,
-        "mass",[](Straw::Components::Physics& self){ return self.body->getMass();},
+        "mass",[](Straw::Components::Physics& self){ return self.bodyjoint.body->getMass();},
 
         "slope",&Straw::Components::Physics::Slope,
-        "position" , sol::property([](Straw::Components::Physics& self){return XVector::fromVec(self.body->getGlobalPose().p) * Straw::PhysicsSystem::PPM;},[](Straw::Components::Physics& physics,XVector& other){
+        "position" , sol::property([](Straw::Components::Physics& self){return XVector::fromVec(self.bodyjoint.body->getGlobalPose().p) * Straw::PhysicsSystem::PPM;},[](Straw::Components::Physics& physics,XVector& other){
         physx::PxTransform temptransform;
         temptransform.p = XVector::ToVec<physx::PxVec3>(other);
         temptransform.q = physx::PxQuat(1.0f);
-        physics.body->setGlobalPose(temptransform);}
+        physics.bodyjoint.body->setGlobalPose(temptransform);}
     ));
     luastate["PhysicsSystem"]["MovePlayer"] = [&](const XVector& pos,const XVector& vel,float xOffset,float yOffset,bool ignore){
         Straw::PhysicsSystem::currentBounces=0;
@@ -87,7 +87,7 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
        final = std::get<0>(Straw::PhysicsSystem::MovePlayer(registry,final.p,physx::PxVec3(0,std::get<1>(matuple).y,0),0,0));
         }
 */
-        registry.get<Straw::Components::Physics>(1).body->setGlobalPose(final);
+        registry.get<Straw::Components::Physics>(1).bodyjoint.body->setGlobalPose(final);
         return (std::get<2>(matuple));
 
     };

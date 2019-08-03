@@ -6,22 +6,7 @@
 #include <include/PxPhysicsAPI.h>
 
 namespace Straw{
-class  RCback : public b2RayCastCallback{
-public:
-  entt::registry* rg;
-  
-  float32 ReportFixture(b2Fixture *fixture, const b2Vec2 &point,
-                        const b2Vec2 &normal, float32 fraction) {
-    // Just a bunch of shitty castings because of the [[~Percisions Errrors~]] Shit 
-      if((unsigned int)((long)(fixture->GetBody()->GetUserData())) == 1){
-          return -1;
-      }
-      return callback(point,normal,(unsigned int)((long)(fixture->GetBody()->GetUserData())),fraction);
 
-    return fraction;
-  }
-  std::function<float(const b2Vec2& point, const b2Vec2 &normal,unsigned int EntityID,float fraction)> callback;
-};
 class CLBack : public b2ContactListener{
 public:
   void BeginContact(b2Contact* contact){
@@ -38,6 +23,18 @@ public:
 
 };
 
+class  RCback : public physx::PxQueryFilterCallback{
+public:
+   physx::PxQueryHitType::Enum preFilter(const physx::PxFilterData &filterData, const physx::PxShape *shape, const physx::PxRigidActor *actor, physx::PxHitFlags &queryFlags) override{
+    std::cout << "OKEY YOU GOT PRE" << std::endl;
+    return physx::PxQueryHitType::eBLOCK;
+   }
+    physx::PxQueryHitType::Enum postFilter(const physx::PxFilterData &filterData, const physx::PxQueryHit &hit) override{
+        std::cout << 31 << std::endl;
+
+        return physx::PxQueryHitType::eBLOCK;
+    }
+};
 class PhysicsSystem{
 public:
   static int PPM;
@@ -45,6 +42,7 @@ public:
   static physx::PxPhysics* mPhysics;
   static physx::PxScene* mScene;
   static int currentBounces,bounceLimit;
+  static Straw::RCback rcbck;
   static std::tuple<physx::PxTransform,physx::PxVec3,bool> MovePlayer(entt::registry& reg,physx::PxVec3 pos,physx::PxVec3  vel,const float xOffset,const float yOffset,bool ignore= false) {
       using namespace physx;
       if(currentBounces <= bounceLimit){
@@ -61,61 +59,72 @@ public:
       PxTransform playertransform;
       playertransform.p = PxVec3(pos.x ,pos.y ,0);
       playertransform.q = PxQuat(1.0);
-      PxSweepBuffer hit;
+      PxSweepHit bufhit[256];
+      PxSweepBuffer hit(bufhit,256);
 
       PxQueryFilterData filterData = PxQueryFilterData();
-      filterData.data.word0 =  (1<<0);
-      bool hitCount =  Straw::PhysicsSystem::mScene->sweep(cubeGeomtry,playertransform,vel.getNormalized(),vel.magnitude(),hit,hitFlags,filterData);
-      bool cancel = false;
+      filterData.data.word0 =  (1<<0) | (1<<1);
+      bool hitCount =  Straw::PhysicsSystem::mScene->sweep(cubeGeomtry,playertransform,vel.getNormalized(),vel.magnitude(),hit,hitFlags,filterData,&rcbck);
+      bool collision = false;
+      int maxHits = hit.getNbAnyHits();
+      int currenthit = -1;
+        int toUseHit = 0;
+        bool HittenShit = false;
       if(hit.hasAnyHits()){
-      XVector hittenscale = reg.get<Straw::Components::Transform>((unsigned int)(long)hit.block.actor->userData).scale;
+          while(currenthit < maxHits - 1 && !collision){
+              collision = true;
+              currenthit++;
+         if(reg.get<Straw::Components::Physics>((unsigned int)(long)hit.getTouch(currenthit).actor->userData).oneWay){
+
+             collision = false;
+        XVector hittenscale = reg.get<Straw::Components::Transform>((unsigned int)(long)hit.getTouch(currenthit).actor->userData).scale;
        PxVec3 actualvel = vel + PxVec3(xOffset,yOffset,0);
-      if(((hit.block.position.y - (hit.block.actor->getGlobalPose().p.y - (hittenscale.y/2))) >1 && !hit.block.hadInitialOverlap() && hit.block.position.y < playertransform.p.y + 25) ){
-          std::cout<<"one way"<< (hit.block.position.y - (hit.block.actor->getGlobalPose().p.y - (hittenscale.y/2))) << std::endl;
-          cancel = true;
-          if((actualvel.x !=0 && actualvel.y > 0)){cancel = false;}
+       if(((hit.getTouch(currenthit).position.y - (hit.getTouch(currenthit).actor->getGlobalPose().p.y - (hittenscale.y/2))) >1 && !hit.getTouch(currenthit).hadInitialOverlap() && hit.getTouch(currenthit).position.y < playertransform.p.y + 25) ){
+          collision = true;
+
+          if((actualvel.x !=0 && actualvel.y > 0)){collision = false;}
 
       };
 
+       }
+         if(!HittenShit && collision){
+            HittenShit = true;
+            toUseHit = currenthit;
+         }
       }
-      if(hit.hasAnyHits() && !ignore && cancel){
-       PxVec3 groundnormal = hit.block.normal;
-       expectedtransform.p = pos + vel.getNormalized() * (hit.block.distance - 0.04f);
+      }
+      if(hit.hasAnyHits()&& !ignore && collision){
+       PxVec3 groundnormal = hit.getTouch(toUseHit).normal;
+       expectedtransform.p = pos + vel.getNormalized() * (hit.getTouch(toUseHit).distance - 0.04f);
        float TOI = (XVector::fromVec(pos - expectedtransform.p) / XVector::fromVec(vel)).Magnitude();
-       std::cout << "Successful HIT " << TOI << ":" << XVector::fromVec(vel)<<std::endl;
        float dotproduct = (vel.x * groundnormal.y+vel.y*groundnormal.x) * (1 - TOI);
-       XVector hittenscale = reg.get<Straw::Components::Transform>((unsigned int)(long)hit.block.actor->userData).scale;
+       XVector hittenscale = reg.get<Straw::Components::Transform>((unsigned int)(long)hit.getTouch(toUseHit).actor->userData).scale;
        PxBoxGeometry hittenGeo(XVector::ToVec<PxVec3>(XVector(hittenscale.x,hittenscale.y,3) / 2));
-       PxVec3 penvec;
-        PxF32 pendepty;
-        physx::PxGeometryQuery::computePenetration(penvec,pendepty,cubeGeomtry,expectedtransform,hittenGeo,hit.block.actor->getGlobalPose());
-        if((expectedtransform.p - pos) != PxVec3(0,0,0)){
-       std::tuple<PxTransform,PxVec3,bool> Step1 =(MovePlayer(reg,pos + vel.getNormalized() * 0.01f,(expectedtransform.p - pos) - vel.getNormalized() * 0.01f ,0,0));
+       if((expectedtransform.p - pos) != PxVec3(0,0,0)){
+
+       std::tuple<PxTransform,PxVec3,bool> Step1 =(MovePlayer(reg,pos + vel.getNormalized() * 0.01f,(expectedtransform.p - pos) - vel.getNormalized() * 0.01f ,xOffset,yOffset));
        return std::make_tuple(std::get<0>(Step1),PxVec3(dotproduct* groundnormal.y,dotproduct*groundnormal.x,0),true);
-
-
        }
        return std::make_tuple(expectedtransform,PxVec3(0.0f),true);
       }else{
           PxTransform tran;
-          tran.p = expectedtransform.p;
+          tran.p = pos+ vel;
           tran.q = PxQuat(1.0f);
           return std::make_tuple(tran,PxVec3(0,0,0),false);
-          std::cout << " WERIDO" << std::endl;
       }
       }else{
 
           PxTransform tran;
           tran.p = pos+ vel;
           tran.q = PxQuat(1.0f);
-          std::cout << " I GIVE UP" << currentBounces << std::endl;
-        return std::make_tuple(tran,PxVec3(0,0,0),false);
+          return std::make_tuple(tran,PxVec3(0,0,0),false);
       }
 
   }
 
-  static void Init() {
+  static void Init(entt::registry& reg) {
         mFoundation = PxCreateFoundation(PX_PHYSICS_VERSION,defaultAlloc,defaultError);
+        registry = &reg;
         mPhysics = PxCreatePhysics(PX_PHYSICS_VERSION,*mFoundation,physx::PxTolerancesScale());
         physx::PxSceneDesc scenedesk(mPhysics->getTolerancesScale());
         scenedesk.gravity = physx::PxVec3(0.0f,-18.6f,0.0);
@@ -136,14 +145,16 @@ public:
 
   static void PhysicsSystemUpdate(entt::registry &regisry, float alpha);
   static void PhysicsSystemFixedUpdate(entt::registry &regisry);
-  static physx::PxRigidDynamic *CreateBody(XVector pos, XVector scale,float rotation, entt::entity id = 0,bool ignoreCasts = false);
-  static physx::PxRigidDynamic *CreateBody(entt::registry& reg,entt::entity id,bool ignoreCasts = false);
+  static  PhysicsBodyJoint CreateBody(XVector pos, XVector scale,float rotation, entt::entity id = 0,bool ignoreCasts = false);
+  static PhysicsBodyJoint CreateBody(entt::registry& reg,entt::entity id,bool ignoreCasts = false);
   static void
   RayCast(XVector pointa, XVector direction,float distance,std::function<void(const XVector &point, const XVector &normal,float distancer,unsigned int EntityID)> callback);
+  static entt::registry* registry;
 
 private:
-  static RCback rcb;
+
   static physx::PxDefaultAllocator defaultAlloc;
   static physx::PxDefaultErrorCallback defaultError;
 };
+
 } // namespace Straw

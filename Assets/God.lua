@@ -199,7 +199,7 @@ returnTable["FixedUpdate"] = function (dt)
             Player.velocity.x = -10
         end
     end
-        PhysicsSystem.rayCast(GetPhysicsComponent(1).position,XVector.new(0,-1,0),26,function(normal,point,distance,ent)if(distance > 25) then  print("YOUR distance : " .. tostring(distance)) onGround = true end end)
+        PhysicsSystem.rayCast(GetPhysicsComponent(1).position,XVector.new(0,-1,0),26,function(normal,point,distance,ent)if(distance > 25) then   onGround = true end end)
 --        PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x+25,GetPhysicsComponent(1).position.y-25),XVector.new(0,-1,0),1,function(normal,point,distance,ent)  onGround = true end)
   --      PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x-25,GetPhysicsComponent(1).position.y-25),XVector.new(0,-1,0),1,function(normal,point,distance,ent)   onGround = true end)
 
