@@ -52,6 +52,7 @@ struct Physics {
   XVector lastpos;
   bool Slope{false};
   bool oneWay{false};
+  bool onSlope{false};
   void SetOneWay(unsigned int flag){
 
     physx::PxFilterData queryflag;

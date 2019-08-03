@@ -69,6 +69,7 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
         "mass",[](Straw::Components::Physics& self){ return self.bodyjoint.body->getMass();},
 
         "slope",&Straw::Components::Physics::Slope,
+        "onSlope",&Straw::Components::Physics::onSlope,
         "position" , sol::property([](Straw::Components::Physics& self){return XVector::fromVec(self.bodyjoint.body->getGlobalPose().p) * Straw::PhysicsSystem::PPM;},[](Straw::Components::Physics& physics,XVector& other){
         physx::PxTransform temptransform;
         temptransform.p = XVector::ToVec<physx::PxVec3>(other);

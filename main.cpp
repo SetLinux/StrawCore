@@ -82,14 +82,14 @@ shdr.Init();
 shdr.Use();
 Straw::Rendering::Texture2D tex("Assets/sheet.png");
 tex.Init();
-//Camera::main.position.x += 350;
+Camera::main.position.x += 350;
 ScriptingSystem::Init(reg,win);
 ScriptingSystem::ExecuteScript("Assets/KeyBindings.lua");
 auto ScriptGod = reg.create();
 reg.assign<Straw::Components::Script> (ScriptGod,ScriptingSystem::luastate).LoadScript("Assets/God.lua");
 auto ent = reg.create();
 std::cout  << ent << std::endl;
-reg.assign<Straw::Components::Transform>(ent,XVector(500,900),XVector(50,50),0);
+reg.assign<Straw::Components::Transform>(ent,XVector(500,900,-10),XVector(50,50),0);
 reg.assign<Straw::Components::Sprite>(ent,tex.id,0);
 reg.assign<Straw::Components::Physics>(ent,Straw::PhysicsSystem::CreateBody(reg,ent,true)).bodyjoint.body->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC,true);
 
@@ -113,12 +113,28 @@ reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
 reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).bodyjoint.body->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC,true);
 reg.get<Straw::Components::Physics>(floor).Slope = false;
 reg.get<Straw::Components::Physics>(floor).oneWay = true;
+
 floor = reg.create();
-reg.assign<Straw::Components::Transform>(floor,XVector(756,506.9f),XVector(300,60),Radians(0));
+reg.assign<Straw::Components::Transform>(floor,XVector(856,346.9f),XVector(150,100),Radians(0));
 reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
 reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).bodyjoint.body->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC,true);
 reg.get<Straw::Components::Physics>(floor).Slope = false;
 reg.get<Straw::Components::Physics>(floor).oneWay = true;
+
+floor = reg.create();
+reg.assign<Straw::Components::Transform>(floor,XVector(990,146.9f),XVector(150,100),Radians(0));
+reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
+reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).bodyjoint.body->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC,true);
+reg.get<Straw::Components::Physics>(floor).Slope = false;
+reg.get<Straw::Components::Physics>(floor).onSlope = true;
+
+floor = reg.create();
+reg.assign<Straw::Components::Transform>(floor,XVector(-50,196.9f),XVector(150,100),Radians(0));
+reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
+reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).bodyjoint.body->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC,true);
+reg.get<Straw::Components::Physics>(floor).Slope = false;
+reg.get<Straw::Components::Physics>(floor).onSlope = true;
+
 floor = reg.create();
 reg.assign<Straw::Components::Transform>(floor,XVector(500,300),XVector(400,150),Radians(0));
 reg.assign<Straw::Components::Sprite>(floor,tex.id,0);

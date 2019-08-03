@@ -70,7 +70,7 @@ void PhysicsSystem::RayCast(
     physx::PxRaycastBuffer buffer;
     physx::PxQueryFilterData filterData = physx::PxQueryFilterData();
     filterData.data.word0 = (1 << 0) | (1<<1);
-    physx::PxHitFlags hitFlags = physx::PxHitFlag::ePOSITION|physx::PxHitFlag::eNORMAL|physx::PxHitFlag::eMTD;
+    physx::PxHitFlags hitFlags = physx::PxHitFlag::ePOSITION|physx::PxHitFlag::eNORMAL;
 
     mScene->raycast(XVector::ToVec<physx::PxVec3>(pointa,true),XVector::ToVec<physx::PxVec3>(direction,true),distance,buffer,hitFlags,filterData);
    // std::cout << buffer.hasAnyHits() << std::endl;

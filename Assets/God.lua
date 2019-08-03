@@ -77,8 +77,9 @@ returnTable["FixedUpdate"] = function (dt)
     onSlopeRight = false
     onSlopeLeft = false
     onGround = false
-    local SlopeSpeed = 20
+    local SlopeSpeed = 15
     local buildupspeed = 14
+
     PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x+ 23,GetPhysicsComponent(1).position.y - 25),XVector.new(1,0,0),4,function(normal1,point,distance,ent)
         if(GetPhysicsComponent(ent).slope) then
         onSlopeRight = true
@@ -114,17 +115,27 @@ returnTable["FixedUpdate"] = function (dt)
         end)
 
         if(onSlopeRight) then
-            PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x + 25 + GetClimbX(SlopeSpeed,Radians(45)),GetPhysicsComponent(1).position.y + 20),XVector.new(0,-1,0),100000,function(normal2,point,distance,ent)
-                    onGround = true
-                    local Direction = point - XVector.new(GetPhysicsComponent(1).position.x+25,GetPhysicsComponent(1).position.y-25)
-                    if(SlopeNormal ~= normal2)then
-                        Player.velocity = XVector.new(GetClimbX(buildupspeed,Radians(45)),GetClimbY(buildupspeed,Radians(45)))
-                        --Player.velocity = Direction
-                    else
+            PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x + 25 + GetClimbX(SlopeSpeed,Radians(45)),GetPhysicsComponent(1).position.y + 40),XVector.new(0,-1,0),100000,function(normal2,point,distance,ent)
+
+                   onGround = true
+                   local Direction = point - XVector.new(GetPhysicsComponent(1).position.x+25,GetPhysicsComponent(1).position.y-25)
+                
+                   local Distancefromedge = -1
+                   PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x  +25,GetPhysicsComponent(1).position.y+25),XVector.new(1,0,0), GetClimbX(SlopeSpeed,Radians(45) ),function(normal2,points,distancer,ent)   if(GetPhysicsComponent(ent).onSlope) then Distancefromedge = distancer  end end)
+               
+                   if(SlopeNormal ~= normal2)then
+                        PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x + 25 + Distancefromedge - 0.1 ,GetPhysicsComponent(1).position.y + 100),XVector.new(0,-1,0),100000,function(normal2er,pointer,distance,ent)   Direction = pointer - XVector.new(GetPhysicsComponent(1).position.x+25,GetPhysicsComponent(1).position.y - 25)   end)                        
+                         Player.velocity = XVector.new(GetClimbX(buildupspeed,Radians(45)),GetClimbY(buildupspeed,Radians(45)))
+                         if(Distancefromedge ~= -1) then
+                             Player.velocity = Direction
+                         end
+                
+                else
                         Player.velocity = Direction
                     end
+                        handled = true
+                 
 
-                    handled = true
             end)
         end
 
@@ -138,8 +149,10 @@ returnTable["FixedUpdate"] = function (dt)
                         else
                             Player.velocity = Direction
                             Descending = true
+
                         end
                         handled = true
+           
             end)
         end
 
@@ -185,9 +198,15 @@ returnTable["FixedUpdate"] = function (dt)
             PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x - 25 - GetClimbX(SlopeSpeed,Radians(-45)) ,GetPhysicsComponent(1).position.y + 20),XVector.new(0,-1,0),100000,function(normal2,point,distance,ent)
                         onGround = true
                         local Direction = point - XVector.new(GetPhysicsComponent(1).position.x-25,GetPhysicsComponent(1).position.y-25)
-                        if(SlopeNormal ~= normal2)then
-                            Player.velocity = XVector.new(GetClimbX(-buildupspeed,Radians(-45)),GetClimbY(-buildupspeed,Radians(-45)))
-
+                     local Distancefromedge = -1
+                         PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x - 25,GetPhysicsComponent(1).position.y+25),XVector.new(-1,0,0), GetClimbX(SlopeSpeed,Radians(45) ),function(normal2,points,distancer,ent)   if(GetPhysicsComponent(ent).onSlope) then Distancefromedge = distancer  end end)
+                      if(SlopeNormal ~= normal2)then
+                        PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x - 25 - Distancefromedge + 0.1 ,GetPhysicsComponent(1).position.y + 100),XVector.new(0,-1,0),100000,function(normal2er,pointer,distance,ent)   Direction = pointer - XVector.new(GetPhysicsComponent(1).position.x-25,GetPhysicsComponent(1).position.y - 25)   end)                        
+                         Player.velocity = XVector.new(GetClimbX(-buildupspeed,Radians(-45)),GetClimbY(-buildupspeed,Radians(-45)))
+                         if(Distancefromedge ~= -1) then
+                             Player.velocity = Direction
+                         end
+              
                         else
                             Player.velocity = Direction
                         end
@@ -199,7 +218,7 @@ returnTable["FixedUpdate"] = function (dt)
             Player.velocity.x = -10
         end
     end
-        PhysicsSystem.rayCast(GetPhysicsComponent(1).position,XVector.new(0,-1,0),26,function(normal,point,distance,ent)if(distance > 25) then   onGround = true end end)
+        PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x,GetPhysicsComponent(1).position.y - 24),XVector.new(0,-1,0),2,function(normal,point,distance,ent)if(distance > 1) then   onGround = true end end)
 --        PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x+25,GetPhysicsComponent(1).position.y-25),XVector.new(0,-1,0),1,function(normal,point,distance,ent)  onGround = true end)
   --      PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x-25,GetPhysicsComponent(1).position.y-25),XVector.new(0,-1,0),1,function(normal,point,distance,ent)   onGround = true end)
 
@@ -209,15 +228,16 @@ returnTable["FixedUpdate"] = function (dt)
 
 end
 returnTable["LateFixedUpdate"] = function (dt)
-
-    if(Player.velocity.y > 0 ) then
-    Player.velocity.y  = Player.velocity.y - 1.2    
+if(not onSlopeRight and not onSlopeLeft) then
+        if(Player.velocity.y > 0 ) then
+    Player.velocity.y  = Player.velocity.y - 1.2
     
     else
-    Player.velocity.y = Player.velocity.y - 2.3
+    Player.velocity.y = Player.velocity.y - 2.6
 
 
     end
+end
     handleMovment()
 end
 return returnTable

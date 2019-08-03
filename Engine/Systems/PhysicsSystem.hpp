@@ -82,7 +82,7 @@ public:
        if(((hit.getTouch(currenthit).position.y - (hit.getTouch(currenthit).actor->getGlobalPose().p.y - (hittenscale.y/2))) >1 && !hit.getTouch(currenthit).hadInitialOverlap() && hit.getTouch(currenthit).position.y < playertransform.p.y + 25) ){
           collision = true;
 
-          if((actualvel.x !=0 && actualvel.y > 0)){collision = false;}
+          if((actualvel.x !=0 && actualvel.y >= 0)){collision = false;}
 
       };
 
