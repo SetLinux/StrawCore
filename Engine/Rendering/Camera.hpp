@@ -6,7 +6,7 @@ public:
   ~Camera();
   XVector position = XVector(0,0,0);
   static Camera main;
-  glm::mat4 Projection = glm::ortho(-0.5f,(1000 - 1) + 0.5f , -0.5f, ( 1000 - 1.0f) + 0.5f , -1000.f,1000.f);
+  glm::mat4 Projection = glm::ortho(0.5f,(1000 - 1) + -0.5f , -0.5f, ( 1000 - 1.0f) + 0.5f , -1000.f,1000.f);
   inline glm::mat4 getViewMatrix(){
     glm::mat4 view = glm::mat4(1.0f);
     view = glm::translate(view,XVector::ToVec<glm::vec3>(position,true));

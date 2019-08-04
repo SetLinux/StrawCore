@@ -15,7 +15,7 @@ void Texture2D::Init() {
 	(
 		m_path.c_str(),
 		SOIL_LOAD_AUTO,
-		SOIL_CREATE_NEW_ID,
+        SOIL_CREATE_NEW_ID,
      SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y );
 	if (id == 0) {
 		printf("SOIL loading error: '%s'\n", SOIL_last_result());

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.9.2, 2019-08-03T20:53:06. -->
+<!-- Written by QtCreator 4.9.2, 2019-08-04T15:43:34. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -370,7 +370,7 @@
     <value type="bool" key="RunConfiguration.UseCppDebugger">true</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">false</value>
     <value type="bool" key="RunConfiguration.UseMultiProcess">false</value>
-    <value type="bool" key="RunConfiguration.UseQmlDebugger">true</value>
+    <value type="bool" key="RunConfiguration.UseQmlDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">false</value>
     <value type="QString" key="RunConfiguration.WorkingDirectory">/home/mohamedmedhat/Desktop/BACKUP</value>
     <value type="QString" key="RunConfiguration.WorkingDirectory.default"></value>

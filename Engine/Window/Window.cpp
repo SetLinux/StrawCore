@@ -10,6 +10,7 @@ Window::Window(const std::string &name, float width, float height)
 void Window::Init() {
   glfwInit();
   // Giving the necessary Hints to create a porper modern opengl context
+  glfwWindowHint(GLFW_SAMPLES, 1);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -19,17 +20,17 @@ void Window::Init() {
   GLenum err = glewInit();
   if (err != GLEW_OK) {
   }
-  glViewport(0, 0, m_width, m_height);
   // Print the vendor
   const GLubyte *vendor = glGetString(GL_VENDOR); // Returns the vendor
   std::cout << "GL Vendor : " << vendor << std::endl;
   // Enable OpenGL State preperation
   glEnable(GL_DEPTH_TEST);
 
+  glViewport(0, 0, m_width, m_height);
   // Setup a function for blending
 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  
+
   glfwSetInputMode(m_window, GLFW_STICKY_MOUSE_BUTTONS, GLFW_TRUE);
   glfwSwapInterval(1);
 }
@@ -39,28 +40,33 @@ Window::~Window() {
 }
 void Window::Loop(std::function<void(float,float)> Update,
                   std::function<void(float)> FixedUpdate) {
-  float t = 0.0;
-  const float  dt = 1.f/60.f;
+  double t = 0.0;
+  const double  dt = .0166666666667;
 
-  float currentTime = (float)glfwGetTime();
-  float  accumulator = 0.0f;
+  double currentTime = glfwGetTime();
+  double accumulator = 0;
   while (!glfwWindowShouldClose(m_window)) {
-    glfwPollEvents();
-    float newTime = (float)glfwGetTime();
-    float frameTime = newTime - currentTime;
+    bool RANFIXED = false;
+     glfwPollEvents();
+    double newTime = glfwGetTime();
+    double frameTime = newTime - currentTime;
     currentTime = newTime;
 	glfwGetCursorPos(m_window, &mousexpos, &mouseypos);
     accumulator += frameTime;
-	while (accumulator >= dt) {
+    while (accumulator >= dt) {
 		FixedUpdate(dt);
+        std::cout << "FIXED" << std::endl;
 		accumulator -= dt;
 		t += dt;
-		
+        RANFIXED = true;
+
 	}
+    if(!RANFIXED) {std::cout << " JITTER " << std::endl;}
 	const double alpha = accumulator / dt;
+    std::cout << " NEEDS A CARPENTER" << std::endl;
     glClearColor(1, 1, 0, 1);
 	glEnable(GL_STENCIL_TEST | GL_DEPTH_TEST);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     Update(alpha,dt);
     glfwSwapBuffers(m_window);
   }

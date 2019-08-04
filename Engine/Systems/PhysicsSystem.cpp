@@ -27,6 +27,7 @@ void PhysicsSystem::PhysicsSystemUpdate(entt::registry & registry,float alpha) {
     Components::Physics &physics = registry.get<Components::Physics>(ent);
     Components::Transform &transform = registry.get<Components::Transform>(ent);
     transform.position = XVector::Interpolate(physics.lastpos == XVector(0,0) ? XVector::fromVec(physics.bodyjoint.body->getGlobalPose().p) * PhysicsSystem::PPM : physics.lastpos, XVector::fromVec(physics.bodyjoint.body->getGlobalPose().p) * PhysicsSystem::PPM, alpha);
+    //transform.position = XVector::fromVec(physics.bodyjoint.body->getGlobalPose().p,true);
   }
 }
 

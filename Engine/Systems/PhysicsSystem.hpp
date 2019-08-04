@@ -93,7 +93,7 @@ public:
          }
       }
       }
-      if(hit.hasAnyHits()&& !ignore && collision){
+      if(hit.hasAnyHits()&& !ignore  && collision){
        PxVec3 groundnormal = hit.getTouch(toUseHit).normal;
        expectedtransform.p = pos + vel.getNormalized() * (hit.getTouch(toUseHit).distance - 0.04f);
        float TOI = (XVector::fromVec(pos - expectedtransform.p) / XVector::fromVec(vel)).Magnitude();

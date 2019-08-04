@@ -82,7 +82,6 @@ shdr.Init();
 shdr.Use();
 Straw::Rendering::Texture2D tex("Assets/sheet.png");
 tex.Init();
-Camera::main.position.x += 350;
 ScriptingSystem::Init(reg,win);
 ScriptingSystem::ExecuteScript("Assets/KeyBindings.lua");
 auto ScriptGod = reg.create();
@@ -94,7 +93,7 @@ reg.assign<Straw::Components::Sprite>(ent,tex.id,0);
 reg.assign<Straw::Components::Physics>(ent,Straw::PhysicsSystem::CreateBody(reg,ent,true)).bodyjoint.body->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC,true);
 
 auto floor = reg.create();
-reg.assign<Straw::Components::Transform>(floor,XVector(500,000),XVector(900,100),Radians(0));
+reg.assign<Straw::Components::Transform>(floor,XVector(500,000),XVector(1024,128),Radians(0));
 reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
 reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).bodyjoint.body->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC,true);
 floor = reg.create();
@@ -129,7 +128,7 @@ reg.get<Straw::Components::Physics>(floor).Slope = false;
 reg.get<Straw::Components::Physics>(floor).onSlope = true;
 
 floor = reg.create();
-reg.assign<Straw::Components::Transform>(floor,XVector(-50,196.9f),XVector(150,100),Radians(0));
+reg.assign<Straw::Components::Transform>(floor,XVector(-50,196.9f),XVector(128,128),Radians(0));
 reg.assign<Straw::Components::Sprite>(floor,tex.id,0);
 reg.assign<Straw::Components::Physics>(floor,Straw::PhysicsSystem::CreateBody(reg,floor)).bodyjoint.body->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC,true);
 reg.get<Straw::Components::Physics>(floor).Slope = false;
@@ -144,12 +143,16 @@ reg.get<Straw::Components::Physics>(floor).oneWay = true;
 win.Loop([&](float alpha,float dt){
     ScriptingSystem::ScriptingSystemUpdate(reg,dt);
     Straw::PhysicsSystem::PhysicsSystemUpdate(reg,alpha);
+    //Camera::main.position = XVector(std::round(Camera::main.position.x),std::round(Camera::main.position.y));
+    Camera::main.position = XVector::Interpolate(Camera::main.position,XVector(reg.get<Straw::Components::Physics>(ent).bodyjoint.body->getGlobalPose().p.x * -1 + 500,Camera::main.position.y),0.1f);
     Straw::RenderingSystem::RenderSystem(reg);
+    // std::cout << reg.get<Straw::Components::Transform>(ent).position << std::endl;
 },[&](float dt){
     ScriptingSystem::ScriptingSystemFixedUpdate(reg,dt);
     Straw::PhysicsSystem::PhysicsSystemFixedUpdate(reg);
     ScriptingSystem::ScriptingSystemLateFixedUpdate(reg,dt);
-/*
+
+    /*
     if(glfwGetKey(win.m_window,GLFW_KEY_SPACE) == GLFW_PRESS){
         reg.get<Straw::Components::Physics>(1).body->setGlobalPose( MovePlayer(reg,(playerLocation),XVector::ToVec<physx::PxVec3>(XVector(0,30)),0,-.3f));
        // reg.get<Straw::Components::Physics>(1).body->setGlobalPose(MovePlayer(reg,(playerLocation),XVector::ToVec<physx::PxVec3>(XVector(0,-10)),-1.0,1.0));

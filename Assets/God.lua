@@ -77,7 +77,7 @@ returnTable["FixedUpdate"] = function (dt)
     onSlopeRight = false
     onSlopeLeft = false
     onGround = false
-    local SlopeSpeed = 15
+    local SlopeSpeed = 14
     local buildupspeed = 14
 
     PhysicsSystem.rayCast(XVector.new(GetPhysicsComponent(1).position.x+ 23,GetPhysicsComponent(1).position.y - 25),XVector.new(1,0,0),4,function(normal1,point,distance,ent)
