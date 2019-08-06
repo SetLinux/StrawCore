@@ -97,10 +97,16 @@ struct Script {
 			}
 			LuaTables.push_back(FunctionsTable);
 	}
-	void RunUpdate(float dt) {
+    void RunUpdate(float dt) {
         for (size_t i  = 0; i < LuaTables.size(); i++) {
             ExecuteLuaFunction(LuaTables[i]["Update"],dt);
-		}
+        }
+    }
+
+    void RunLateUpdate(float dt) {
+        for (size_t i  = 0; i < LuaTables.size(); i++) {
+            ExecuteLuaFunction(LuaTables[i]["LateUpdate"],dt);
+        }
     }
     void RunFixedUpdate(float dt) {
         for (size_t i = 0; i < LuaTables.size(); i++) {

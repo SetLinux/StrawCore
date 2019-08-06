@@ -2,6 +2,7 @@
 #include "PhysicsSystem.hpp"
 #include "../Rendering/Texture2D.hpp"
 #include "../Components/Components.hpp"
+#include "../Rendering/Camera.hpp"
 sol::state ScriptingSystem::luastate;
 void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 	luastate.open_libraries(sol::lib::base, sol::lib::os, sol::lib::math);
@@ -31,7 +32,10 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
 		Straw::Rendering::Texture2D* tex = new Straw::Rendering::Texture2D(path);
 		tex->Init();
 		return tex->id;
-	};
+    };
+    luastate["Camera"] = sol::new_table();
+    luastate["Camera"]["SetPosition"] = [&](const XVector& pos){Camera::main.position = pos;};
+    luastate["Camera"]["GetPosition"] = [&](){return Camera::main.position;};
 	luastate["PhysicsSystem"] = sol::new_table();
 //Just plain ol' Physx RayCast
     luastate["PhysicsSystem"]["rayCast"] = [](XVector pointa,XVector direction,float distance , sol::function func){

@@ -10,7 +10,7 @@ Window::Window(const std::string &name, float width, float height)
 void Window::Init() {
   glfwInit();
   // Giving the necessary Hints to create a porper modern opengl context
-  glfwWindowHint(GLFW_SAMPLES, 1);
+  glfwWindowHint(GLFW_SAMPLES, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -41,7 +41,7 @@ Window::~Window() {
 void Window::Loop(std::function<void(float,float)> Update,
                   std::function<void(float)> FixedUpdate) {
   double t = 0.0;
-  const double  dt = .0166666666667;
+  const double  dt = 1.f/10.f;
 
   double currentTime = glfwGetTime();
   double accumulator = 0;
@@ -50,24 +50,22 @@ void Window::Loop(std::function<void(float,float)> Update,
      glfwPollEvents();
     double newTime = glfwGetTime();
     double frameTime = newTime - currentTime;
+
     currentTime = newTime;
 	glfwGetCursorPos(m_window, &mousexpos, &mouseypos);
     accumulator += frameTime;
     while (accumulator >= dt) {
-		FixedUpdate(dt);
-        std::cout << "FIXED" << std::endl;
-		accumulator -= dt;
-		t += dt;
+        FixedUpdate(1.f/10.f);
+        accumulator -= dt;
+        t += dt;
         RANFIXED = true;
 
-	}
-    if(!RANFIXED) {std::cout << " JITTER " << std::endl;}
-	const double alpha = accumulator / dt;
-    std::cout << " NEEDS A CARPENTER" << std::endl;
+    }
+    const double alpha = accumulator / dt;
     glClearColor(1, 1, 0, 1);
-	glEnable(GL_STENCIL_TEST | GL_DEPTH_TEST);
+    glEnable(GL_STENCIL_TEST | GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    Update(alpha,dt);
+    Update(alpha,frameTime);
     glfwSwapBuffers(m_window);
   }
  

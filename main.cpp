@@ -74,6 +74,7 @@ physx::PxTransform MovePlayer(entt::registry& reg,physx::PxVec3 pos,physx::PxVec
 int main(){
 Straw::Window win("Fast Test",1000,1000);
 win.Init();
+std::string TESTQTDEBUG ="OAH NO";
  auto reg = entt::registry{};
 Straw::RenderingSystem::InitSystem(reg);
 Straw::PhysicsSystem::Init(reg);
@@ -85,7 +86,9 @@ tex.Init();
 ScriptingSystem::Init(reg,win);
 ScriptingSystem::ExecuteScript("Assets/KeyBindings.lua");
 auto ScriptGod = reg.create();
+ScriptingSystem::ExecuteScript("Assets/easing.lua");
 reg.assign<Straw::Components::Script> (ScriptGod,ScriptingSystem::luastate).LoadScript("Assets/God.lua");
+std::string thisisateststring = "FUCK QT CREATOR";
 auto ent = reg.create();
 std::cout  << ent << std::endl;
 reg.assign<Straw::Components::Transform>(ent,XVector(500,900,-10),XVector(50,50),0);
@@ -142,15 +145,15 @@ reg.get<Straw::Components::Physics>(floor).Slope = false;
 reg.get<Straw::Components::Physics>(floor).oneWay = true;
 win.Loop([&](float alpha,float dt){
     ScriptingSystem::ScriptingSystemUpdate(reg,dt);
-    Straw::PhysicsSystem::PhysicsSystemUpdate(reg,alpha);
+    Straw::PhysicsSystem::PhysicsSystemUpdate(reg,1);
+
     //Camera::main.position = XVector(std::round(Camera::main.position.x),std::round(Camera::main.position.y));
-    Camera::main.position = XVector::Interpolate(Camera::main.position,XVector(reg.get<Straw::Components::Physics>(ent).bodyjoint.body->getGlobalPose().p.x * -1 + 500,Camera::main.position.y),0.1f);
+    ScriptingSystem::ScriptingSystemLateFixedUpdate(reg,dt);
     Straw::RenderingSystem::RenderSystem(reg);
-    // std::cout << reg.get<Straw::Components::Transform>(ent).position << std::endl;
 },[&](float dt){
     ScriptingSystem::ScriptingSystemFixedUpdate(reg,dt);
     Straw::PhysicsSystem::PhysicsSystemFixedUpdate(reg);
-    ScriptingSystem::ScriptingSystemLateFixedUpdate(reg,dt);
+   //Camera::main.position = XVector::Interpolate(Camera::main.position,XVector(reg.get<Straw::Components::Physics>(ent).bodyjoint.body->getGlobalPose().p.x * -1 + 500,Camera::main.position.y),0.2f);
 
     /*
     if(glfwGetKey(win.m_window,GLFW_KEY_SPACE) == GLFW_PRESS){

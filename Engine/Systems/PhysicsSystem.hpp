@@ -75,16 +75,18 @@ public:
               collision = true;
               currenthit++;
          if(reg.get<Straw::Components::Physics>((unsigned int)(long)hit.getTouch(currenthit).actor->userData).oneWay){
-
+       std::cout<< " HIT A ONE AWY " << std::endl;
              collision = false;
         XVector hittenscale = reg.get<Straw::Components::Transform>((unsigned int)(long)hit.getTouch(currenthit).actor->userData).scale;
        PxVec3 actualvel = vel + PxVec3(xOffset,yOffset,0);
        if(((hit.getTouch(currenthit).position.y - (hit.getTouch(currenthit).actor->getGlobalPose().p.y - (hittenscale.y/2))) >1 && !hit.getTouch(currenthit).hadInitialOverlap() && hit.getTouch(currenthit).position.y < playertransform.p.y + 25) ){
           collision = true;
 
-          if((actualvel.x !=0 && actualvel.y >= 0)){collision = false;}
 
       };
+       std::cout<< XVector::fromVec(actualvel) << std::endl;
+
+       if((actualvel.x != 0 && actualvel.y >= 0)){std::cout<< " ZERO " << std::endl;collision = false;}
 
        }
          if(!HittenShit && collision){

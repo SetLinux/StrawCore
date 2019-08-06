@@ -10,7 +10,7 @@ physx::PxFoundation* PhysicsSystem::mFoundation;
 physx::PxPhysics* PhysicsSystem::mPhysics;
 physx::PxScene* PhysicsSystem::mScene;
 entt::registry* PhysicsSystem::registry;
-int PhysicsSystem::currentBounces=0,PhysicsSystem::bounceLimit=24;
+int PhysicsSystem::currentBounces=0,PhysicsSystem::bounceLimit=4;
 void PhysicsSystem::PhysicsSystemFixedUpdate(entt::registry &registry){
   auto view = registry.view<Components::Physics>();
   for(auto& ent : view){
@@ -26,8 +26,8 @@ void PhysicsSystem::PhysicsSystemUpdate(entt::registry & registry,float alpha) {
   for(auto& ent : view){
     Components::Physics &physics = registry.get<Components::Physics>(ent);
     Components::Transform &transform = registry.get<Components::Transform>(ent);
-    transform.position = XVector::Interpolate(physics.lastpos == XVector(0,0) ? XVector::fromVec(physics.bodyjoint.body->getGlobalPose().p) * PhysicsSystem::PPM : physics.lastpos, XVector::fromVec(physics.bodyjoint.body->getGlobalPose().p) * PhysicsSystem::PPM, alpha);
-    //transform.position = XVector::fromVec(physics.bodyjoint.body->getGlobalPose().p,true);
+   // transform.position = XVector::Interpolate(physics.lastpos == XVector(0,0) ? XVector::fromVec(physics.bodyjoint.body->getGlobalPose().p) * PhysicsSystem::PPM : physics.lastpos, XVector::fromVec(physics.bodyjoint.body->getGlobalPose().p) * PhysicsSystem::PPM, alpha);
+    transform.position = XVector::fromVec(physics.bodyjoint.body->getGlobalPose().p,true);
   }
 }
 
