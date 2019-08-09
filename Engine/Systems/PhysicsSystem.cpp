@@ -27,7 +27,7 @@ void PhysicsSystem::PhysicsSystemUpdate(entt::registry & registry,float alpha) {
     Components::Physics &physics = registry.get<Components::Physics>(ent);
     Components::Transform &transform = registry.get<Components::Transform>(ent);
    // transform.position = XVector::Interpolate(physics.lastpos == XVector(0,0) ? XVector::fromVec(physics.bodyjoint.body->getGlobalPose().p) * PhysicsSystem::PPM : physics.lastpos, XVector::fromVec(physics.bodyjoint.body->getGlobalPose().p) * PhysicsSystem::PPM, alpha);
-    transform.position = XVector::fromVec(physics.bodyjoint.body->getGlobalPose().p,true);
+    transform.position = XVector::fromVec(physics.bodyjoint.body->getGlobalPose().p,true) + XVector(0,0,transform.position.z);
   }
 }
 
@@ -67,10 +67,14 @@ PhysicsBodyJoint  PhysicsSystem::CreateBody(entt::registry& reg, entt::entity id
 
 void PhysicsSystem::RayCast(
     XVector pointa, XVector direction,float distance,
-    std::function<void(const XVector &point, const XVector &normal, float distancer, unsigned int EntityID)> callback) {
+    std::function<void(const XVector &point, const XVector &normal, float distancer, unsigned int EntityID)> callback, unsigned int additionalFilters) {
     physx::PxRaycastBuffer buffer;
     physx::PxQueryFilterData filterData = physx::PxQueryFilterData();
-    filterData.data.word0 = (1 << 0) | (1<<1);
+    if(additionalFilters == -1) {
+    filterData.data.word0 = (1 << 0) | (1<<1) | (1 << 6);
+    }else{
+    filterData.data.word0 = additionalFilters;
+    }
     physx::PxHitFlags hitFlags = physx::PxHitFlag::ePOSITION|physx::PxHitFlag::eNORMAL;
 
     mScene->raycast(XVector::ToVec<physx::PxVec3>(pointa,true),XVector::ToVec<physx::PxVec3>(direction,true),distance,buffer,hitFlags,filterData);

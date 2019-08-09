@@ -55,7 +55,7 @@ public:
       XVector scale;
       scale = reg.get<Straw::Components::Transform>(1).scale;
       scale.z=2;
-      PxBoxGeometry cubeGeomtry(XVector::ToVec<PxVec3>(XVector(50,50,5,2)/2.0f,true));
+      PxBoxGeometry cubeGeomtry(XVector::ToVec<PxVec3>(XVector(64,64,5,2)/2.0f,true));
       PxTransform playertransform;
       playertransform.p = PxVec3(pos.x ,pos.y ,0);
       playertransform.q = PxQuat(1.0);
@@ -63,7 +63,7 @@ public:
       PxSweepBuffer hit(bufhit,256);
 
       PxQueryFilterData filterData = PxQueryFilterData();
-      filterData.data.word0 =  (1<<0) | (1<<1);
+      filterData.data.word0 =  (1<<0) | (1<<1) | (1 << 6);
       bool hitCount =  Straw::PhysicsSystem::mScene->sweep(cubeGeomtry,playertransform,vel.getNormalized(),vel.magnitude(),hit,hitFlags,filterData,&rcbck);
       bool collision = false;
       int maxHits = hit.getNbAnyHits();
@@ -75,20 +75,18 @@ public:
               collision = true;
               currenthit++;
          if(reg.get<Straw::Components::Physics>((unsigned int)(long)hit.getTouch(currenthit).actor->userData).oneWay){
-       std::cout<< " HIT A ONE AWY " << std::endl;
-             collision = false;
+            collision = false;
         XVector hittenscale = reg.get<Straw::Components::Transform>((unsigned int)(long)hit.getTouch(currenthit).actor->userData).scale;
        PxVec3 actualvel = vel + PxVec3(xOffset,yOffset,0);
        if(((hit.getTouch(currenthit).position.y - (hit.getTouch(currenthit).actor->getGlobalPose().p.y - (hittenscale.y/2))) >1 && !hit.getTouch(currenthit).hadInitialOverlap() && hit.getTouch(currenthit).position.y < playertransform.p.y + 25) ){
-          collision = true;
+           collision = true;
 
 
-      };
-       std::cout<< XVector::fromVec(actualvel) << std::endl;
+      }
+       if((actualvel.x != 0 && actualvel.y >= 0)){collision = false;}
 
-       if((actualvel.x != 0 && actualvel.y >= 0)){std::cout<< " ZERO " << std::endl;collision = false;}
 
-       }
+         }
          if(!HittenShit && collision){
             HittenShit = true;
             toUseHit = currenthit;
@@ -150,7 +148,7 @@ public:
   static  PhysicsBodyJoint CreateBody(XVector pos, XVector scale,float rotation, entt::entity id = 0,bool ignoreCasts = false);
   static PhysicsBodyJoint CreateBody(entt::registry& reg,entt::entity id,bool ignoreCasts = false);
   static void
-  RayCast(XVector pointa, XVector direction,float distance,std::function<void(const XVector &point, const XVector &normal,float distancer,unsigned int EntityID)> callback);
+  RayCast(XVector pointa, XVector direction,float distance,std::function<void(const XVector &point, const XVector &normal,float distancer,unsigned int EntityID)> callback,unsigned int AdditionalFilters = (-1));
   static entt::registry* registry;
 
 private:

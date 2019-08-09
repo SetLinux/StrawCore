@@ -38,13 +38,19 @@ void ScriptingSystem::Init(entt::registry& registry, Straw::Window& win) {
     luastate["Camera"]["GetPosition"] = [&](){return Camera::main.position;};
 	luastate["PhysicsSystem"] = sol::new_table();
 //Just plain ol' Physx RayCast
-    luastate["PhysicsSystem"]["rayCast"] = [](XVector pointa,XVector direction,float distance , sol::function func){
+    luastate["PhysicsSystem"]["rayCast"] = sol::overload([](XVector pointa,XVector direction,float distance , sol::function func){
 
-        Straw::PhysicsSystem::RayCast(pointa,direction,distance,[func](const XVector& point,const XVector normal,float distancer,unsigned int entity){
+            Straw::PhysicsSystem::RayCast(pointa,direction,distance,[func](const XVector& point,const XVector normal,float distancer,unsigned int entity){
+
+                func(XVector::fromVec(normal),point,distancer,entity);
+
+        });},[](XVector pointa,XVector direction,float distance , unsigned int filter, sol::function func){
+
+        Straw::PhysicsSystem::RayCast(pointa,direction,distance,[func,filter](const XVector& point,const XVector normal,float distancer,unsigned int entity){
 
             func(XVector::fromVec(normal),point,distancer,entity);
 
-    });};
+    },filter);});
     luastate["CreateEntity"] = [&](sol::table tbl) {
 		auto ent = registry.create();
 		tbl.for_each([&](std::pair<sol::object, sol::object> pair) {

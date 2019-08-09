@@ -19,7 +19,7 @@ void RenderingSystem::RenderSystem(entt::registry &registery) {
        Components::Sprite& sprite = view.get<Components::Sprite>(ts);
 
        glm::mat4 model = glm::mat4(1.0f);
-       model = glm::translate(model, XVector::ToVec<glm::vec3>(transform.position, true));
+       model = glm::translate(model, glm::vec3(std::round(transform.position.x),std::round(transform.position.y),std::round(transform.position.z)));
        model = glm::rotate(model, transform.rotation, glm::vec3(0.0, 0.0, 1.0f));
        model = glm::scale(model, XVector::ToVec<glm::vec3>(transform.scale, true));
 
@@ -27,7 +27,7 @@ void RenderingSystem::RenderSystem(entt::registry &registery) {
        // making the model matrix
        for (int i = 0; i < 4; i++) {
            glm::vec4 intern = glm::vec4(vertices[i].position.x, vertices[i].position.y, vertices[i].position.z, 1.0f);
-           glm::vec4 res = FMVP * intern;
+         glm::vec4 res = FMVP * intern;
            sprite.vertices[i].position = XVector::fromVec<glm::vec4>(res, true);
            if (sprite.vertices[i].TexCoord == XVector(0, 0))
                sprite.vertices[i].TexCoord = vertices[i].TexCoord;
